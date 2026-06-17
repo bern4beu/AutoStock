@@ -1,0 +1,287 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Reportes{% endblock %}
+
+{% block page_title %}Reportes y Estadísticas{% endblock %}
+
+{% block content %}
+
+<!-- Resumen Rápido -->
+<div class="metrics-grid">
+    
+    <div class="metric-card">
+        <div class="metric-header">
+            <div class="metric-label">Ventas Hoy</div>
+            <div class="metric-icon blue">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+        </div>
+        <div class="metric-value">${{ resumen.hoy.total }}</div>
+        <div class="metric-change">{{ resumen.hoy.cantidad }} operaciones</div>
+    </div>
+    
+    <div class="metric-card">
+        <div class="metric-header">
+            <div class="metric-label">Esta Semana</div>
+            <div class="metric-icon green">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+            </div>
+        </div>
+        <div class="metric-value">${{ resumen.semana.total }}</div>
+        <div class="metric-change">{{ resumen.semana.cantidad }} ventas</div>
+    </div>
+    
+    <div class="metric-card">
+        <div class="metric-header">
+            <div class="metric-label">Este Mes</div>
+            <div class="metric-icon blue">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+            </div>
+        </div>
+        <div class="metric-value">${{ resumen.mes.total }}</div>
+        <div class="metric-change">{{ resumen.mes.cantidad }} ventas</div>
+    </div>
+    
+    <div class="metric-card">
+        <div class="metric-header">
+            <div class="metric-label">Ganancia Real Mes</div>
+            <div class="metric-icon green">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                </svg>
+            </div>
+        </div>
+        <div class="metric-value">${{ resumen.ganancia_mes }}</div>
+        <div class="metric-change metric-change positive">Margen de ganancia</div>
+        <small style="color: var(--gray-400); font-size: 0.72em; display: block; margin-top: 4px;">
+            Solo ventas contado con precio de compra cargado.
+        </small>
+        {% if productos_sin_costo > 0 %}
+        <small style="color: var(--warning); font-size: 0.72em; display: block; margin-top: 2px;">
+            ⚠️ {{ productos_sin_costo }} producto{{ 's' if productos_sin_costo != 1 else '' }} 
+            sin costo no {{ 'están incluidos' if productos_sin_costo != 1 else 'está incluido' }}.
+            <a href="/productos" style="color: var(--warning);">Cargar precios →</a>
+        </small>
+        {% endif %}
+    </div>
+    
+</div>
+
+<!-- Filtro por Período -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h2 class="card-title">Filtrar por Período</h2>
+    </div>
+    <div class="card-body">
+        <form method="GET" action="/reportes">
+            <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: var(--spacing-md); align-items: flex-end;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Desde</label>
+                    <input type="date" name="desde" value="{{ filtro.desde or '' }}">
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Hasta</label>
+                    <input type="date" name="hasta" value="{{ filtro.hasta or '' }}">
+                </div>
+                
+                <div style="display: flex; gap: var(--spacing-sm);">
+                    <button type="submit" class="btn btn-primary">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                        </svg>
+                        Filtrar
+                    </button>
+                    <a href="/reportes" class="btn btn-secondary">Limpiar</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Resultados del Período -->
+{% if periodo %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h2 class="card-title">Resultados del Período Seleccionado</h2>
+    </div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--spacing-lg);">
+            <div>
+                <div style="font-size: var(--text-sm); color: var(--gray-600); margin-bottom: 4px;">Total Facturado</div>
+                <div style="font-size: var(--text-2xl); font-weight: 700; color: var(--gray-900);">${{ periodo.total }}</div>
+            </div>
+            <div>
+                <div style="font-size: var(--text-sm); color: var(--gray-600); margin-bottom: 4px;">Cantidad de Ventas</div>
+                <div style="font-size: var(--text-2xl); font-weight: 700; color: var(--gray-900);">{{ periodo.cantidad }}</div>
+            </div>
+            <div>
+                <div style="font-size: var(--text-sm); color: var(--gray-600); margin-bottom: 4px;">Ganancia Real</div>
+                <div style="font-size: var(--text-2xl); font-weight: 700; color: var(--success);">${{ periodo.ganancia }}</div>
+                <small style="color: var(--gray-400); font-size: 0.72em; display: block; margin-top: 4px;">
+                    Solo ventas contado con precio de compra cargado.
+                </small>
+                {% if productos_sin_costo > 0 %}
+                <small style="color: var(--warning); font-size: 0.72em; display: block; margin-top: 2px;">
+                    ⚠️ {{ productos_sin_costo }} producto{{ 's' if productos_sin_costo != 1 else '' }}
+                    sin costo no {{ 'están incluidos' if productos_sin_costo != 1 else 'está incluido' }}.
+                    <a href="/productos" style="color: var(--warning);">Cargar precios →</a>
+                </small>
+                {% endif %}
+            </div>
+            <div>
+                <div style="font-size: var(--text-sm); color: var(--gray-600); margin-bottom: 4px;">Ticket Promedio</div>
+                <div style="font-size: var(--text-2xl); font-weight: 700; color: var(--gray-900);">${{ periodo.promedio }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Ventas por Día -->
+<div class="table-container">
+    <div class="table-header">
+        <h2>Ventas por día 
+            <span style="font-size: var(--text-sm); font-weight: 400; color: var(--gray-500);">
+                {% if filtro.desde or filtro.hasta %}
+                    período seleccionado
+                {% else %}
+                    últimos 30 días
+                {% endif %}
+            </span>
+        </h2>
+    </div>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th class="text-center">Cantidad</th>
+                    <th class="text-right">Total Facturado</th>
+                    <th class="text-right">Ganancia Real</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dia in ventas_por_dia %}
+                <tr>
+                    <td style="font-weight: 500;">{{ dia.fecha }}</td>
+                    <td class="text-center">
+                        <span class="badge badge-info">{{ dia.cantidad }}</span>
+                    </td>
+                    <td class="text-right" style="font-weight: 600; color: var(--gray-900);">${{ dia.total }}</td>
+                    <td class="text-right" style="font-weight: 600; color: var(--success);">${{ dia.ganancia }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Historial por mes -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h3 style="font-size: var(--text-base); font-weight: 600; color: var(--gray-900);">
+            Historial de los últimos 12 meses
+        </h3>
+    </div>
+    <div class="card-body">
+        {% if historial_meses %}
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mes</th>
+                        <th class="text-center">Ventas</th>
+                        <th class="text-right">Total Facturado</th>
+                        <th class="text-right">Ganancia Real</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mes in historial_meses %}
+                    <tr>
+                        <td style="font-weight: 500; color: var(--gray-900);">{{ mes.mes }}</td>
+                        <td class="text-center">
+                            <span class="badge badge-gray">{{ mes.cantidad_ventas }}</span>
+                        </td>
+                        <td class="text-right" style="font-weight: 600;">${{ mes.total_facturado }}</td>
+                        <td class="text-right" style="color: var(--success); font-weight: 600;">${{ mes.ganancia_real }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="color: var(--gray-500); text-align: center; padding: var(--spacing-xl);">
+            No hay ventas registradas todavía.
+        </p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Resumen cobros por método de pago -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h3 style="font-size: var(--text-base); font-weight: 600; color: var(--gray-900);">
+            Cobros {% if filtro.desde or filtro.hasta %}del período{% else %}del mes{% endif %} por método de pago
+        </h3>
+    </div>
+    <div class="card-body">
+        {% if metodos_pago_mes %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--spacing-md); margin-bottom: var(--spacing-xl);">
+            {% for m in metodos_pago_mes %}
+            <div style="background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 8px; padding: var(--spacing-md);">
+                <div style="font-size: var(--text-xs); color: var(--gray-500); text-transform: capitalize; margin-bottom: 4px;">
+                    {{ m.metodo.replace('_', ' ') }}
+                </div>
+                <div style="font-size: var(--text-lg); font-weight: 700; color: var(--gray-900);">
+                    ${{ m.total }}
+                </div>
+                <div style="font-size: var(--text-xs); color: var(--gray-400); margin-top: 2px;">
+                    {{ m.cantidad }} venta{{ 's' if m.cantidad != 1 else '' }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Tabla de ventas individuales -->
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Cliente</th>
+                        <th class="text-center">Método de Pago</th>
+                        <th class="text-right">Monto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in ventas_cobros %}
+                    <tr>
+                        <td style="font-size: var(--text-sm); color: var(--gray-600);">{{ v.fecha }}</td>
+                        <td style="font-weight: 500;">{{ v.cliente }}</td>
+                        <td class="text-center">
+                            <span class="badge badge-gray" style="text-transform: capitalize;">
+                                {{ v.metodo_pago.replace('_', ' ') }}
+                            </span>
+                        </td>
+                        <td class="text-right" style="font-weight: 600;">${{ v.total }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="color: var(--gray-500); text-align: center; padding: var(--spacing-xl);">
+            No hay ventas registradas este mes.
+        </p>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

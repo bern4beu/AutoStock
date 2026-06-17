@@ -1,0 +1,387 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Productos{% endblock %}
+
+{% block page_title %}Inventario de Productos{% endblock %}
+
+{% block header_actions %}
+<a href="/producto_variante" class="btn btn-primary">
+    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+    </svg>
+    Nuevo Producto
+</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- Filtros y Búsqueda -->
+<div class="card mb-4">
+    <div class="card-body">
+        <!-- Búsqueda -->
+        <div class="form-group" style="margin-bottom: var(--spacing-md);">
+            <label>Buscar Producto</label>
+            <input 
+                type="text" 
+                id="buscarProducto" 
+                placeholder="Buscar por nombre, marca o código..."
+                style="width: 100%;"
+            >
+        </div>
+        
+        <!-- Filtros con checkboxes -->
+        <div style="display: flex; gap: var(--spacing-xl); padding: var(--spacing-md); background: var(--gray-50); border-radius: 6px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0;">
+                <input type="checkbox" id="filtroStockBajo">
+                <span style="font-size: var(--text-sm); color: var(--gray-700);">Solo stock bajo</span>
+            </label>
+            
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0;">
+                <input type="checkbox" id="filtroInactivos">
+                <span style="font-size: var(--text-sm); color: var(--gray-700);">Solo inactivos</span>
+            </label>
+            
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0;">
+                <input type="checkbox" id="filtroSoloPedidos">
+                <span style="font-size: var(--text-sm); color: var(--gray-700);">Solo con pedidos</span>
+            </label>
+        </div>
+    </div>
+</div>
+
+<!-- Filtro por Vehículo -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h3 style="font-size: var(--text-base); font-weight: 600; color: var(--gray-900);">Filtrar por Vehículo Compatible</h3>
+    </div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr) auto; gap: var(--spacing-md); align-items: flex-end;">
+            
+            <div>
+                <label>Marca</label>
+                <select id="filtroMarca" style="width: 100%;">
+                    <option value="">Todas las marcas</option>
+                </select>
+            </div>
+            
+            <div>
+                <label>Modelo</label>
+                <select id="filtroModelo" style="width: 100%;" disabled>
+                    <option value="">Primero seleccioná marca</option>
+                </select>
+            </div>
+            
+            <div>
+                <label>Motor</label>
+                <select id="filtroMotor" style="width: 100%;" disabled>
+                    <option value="">Primero seleccioná modelo</option>
+                </select>
+            </div>
+            
+            <button type="button" onclick="limpiarFiltroVehiculo()" class="btn btn-secondary">
+                Limpiar
+            </button>
+            
+        </div>
+        
+        <div id="infoFiltroVehiculo" style="margin-top: var(--spacing-md); padding: var(--spacing-md); background: var(--gray-50); border-radius: 6px; display: none;">
+            <p style="font-size: var(--text-sm); color: var(--gray-700); margin: 0;">
+                <strong>Filtrando por:</strong> <span id="textoFiltroVehiculo"></span>
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla de Productos -->
+<div class="table-container">
+    <div class="table-header">
+        <div>
+            <h2 class="table-title">Inventario</h2>
+            <p style="font-size: var(--text-sm); color: var(--gray-500); margin-top: 4px;">
+                <span id="contadorProductos">Mostrando 0 de 0 productos</span>
+            </p>
+        </div>
+    </div>
+    <div class="table-wrapper">
+        <table id="tablaProductos">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Código</th>
+                    <th>Marca</th>
+                    <th>Calidad</th>
+                    <th class="text-right">Precio Venta</th>
+                    {% if current_user.es_admin() %}<th class="text-right">Precio Compra</th>{% endif %}
+                    <th class="text-center">Stock</th>
+                    <th>Ubicación</th>
+                    <th>Proveedor</th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in productos %}
+                <tr data-stock-bajo="{{ 'true' if p.stock <= p.stock_minimo else 'false' }}"
+                    data-activo="{{ 'true' if p.activo else 'false' }}"
+                    data-pedido="{{ 'true' if p.pedido_activo else 'false' }}">
+                    
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            {% if p.imagen_url %}
+                            <img src="{{ p.imagen_url }}" 
+                                 alt="{{ p.producto }}" 
+                                 class="lightbox-trigger"
+                                 style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid var(--gray-200); cursor: pointer;">
+                            {% else %}
+                            <div style="width: 40px; height: 40px; background: var(--gray-100); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--gray-400);">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                </svg>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <div style="font-weight: 500; color: var(--gray-900);">{{ p.producto }}</div>
+                                {% if p.dimensiones %}
+                                <div style="font-size: var(--text-xs); color: var(--gray-500);">{{ p.dimensiones }}</div>
+                                {% endif %}
+                                {% if p.descripcion %}
+                                <div style="font-size: var(--text-xs); color: var(--gray-600); margin-top: 2px;">{{ p.descripcion }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    
+                    <td>
+                        <span class="badge badge-gray">{{ p.codigo or '-' }}</span>
+                    </td>
+                    
+                    <td style="font-weight: 500;">{{ p.marca }}</td>
+                    <td>
+                        {% if p.calidad %}
+                        <span class="badge badge-gray">{{ p.calidad }}</span>
+                        {% else %}
+                        <span style="color: var(--gray-400);">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-right" style="font-weight: 600; color: var(--gray-900);">${{ p.precio }}</td>
+                    {% if current_user.es_admin() %}<td class="text-right" style="color: var(--gray-600);">${{ p.precio_compra }}</td>{% endif %}
+                    <td class="text-center">
+                        {% if p.stock <= p.stock_minimo %}
+                        <span class="badge badge-danger">{{ p.stock }}</span>
+                        {% else %}
+                        <span class="badge badge-success">{{ p.stock }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ p.ubicacion or '-' }}</td>
+                    <td style="font-size: var(--text-sm); color: var(--gray-600);">{{ p.proveedor or '-' }}</td>
+                    <td class="text-center">
+                        {% if p.activo %}
+                        <span class="badge badge-success">Activo</span>
+                        {% else %}
+                        <span class="badge badge-gray">Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
+                            <a href="/editar_variante/{{ p.id }}" class="btn btn-sm btn-secondary" title="Editar">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                            </a>
+                            
+                            {% if p.activo %}
+                            <a href="/producto/desactivar/{{ p.id }}" 
+                               class="btn btn-sm btn-danger" 
+                               title="Dar de baja"
+                               onclick="return confirm('¿Seguro que querés desactivar este producto?')">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                                </svg>
+                            </a>
+                            {% else %}
+                            <a href="/producto/activar/{{ p.id }}" 
+                               class="btn btn-sm btn-success" 
+                               title="Activar">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </a>
+                            {% endif %}
+                            
+                            {% if p.pedido_activo %}
+                            <button onclick="mostrarModalRecibir({{ p.id }}, '{{ p.producto }} - {{ p.marca }}', {{ p.pedido_cantidad }})" 
+                                    class="btn btn-sm btn-success" 
+                                    title="Recibir pedido">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </button>
+                            {% else %}
+                            <button onclick="mostrarModalPedir({{ p.id }}, '{{ p.producto }} - {{ p.marca }}')" 
+                                    class="btn btn-sm btn-outline" 
+                                    title="Marcar pedido">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Marcar Pedido -->
+<div id="modalPedido" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 12px; padding: var(--spacing-xl); max-width: 500px; width: 90%;">
+        <h3 style="margin-bottom: var(--spacing-lg); color: var(--gray-900);">Marcar Pedido a Proveedor</h3>
+        <form method="POST" action="/producto/marcar_pedido">
+            <input type="hidden" name="id_producto" id="pedidoIdProducto">
+            
+            <div style="background: var(--gray-50); padding: var(--spacing-md); border-radius: 8px; margin-bottom: var(--spacing-lg);">
+                <strong id="pedidoNombreProducto" style="color: var(--gray-900);"></strong>
+            </div>
+            
+            <div class="form-group">
+                <label>Cantidad a Pedir</label>
+                <input type="number" name="cantidad" required min="1" value="10">
+            </div>
+            
+            <div class="form-group">
+                <label>Fecha Estimada de Llegada (opcional)</label>
+                <input type="date" name="fecha_estimada">
+            </div>
+            
+            <div style="display: flex; gap: var(--spacing-md); justify-content: flex-end; margin-top: var(--spacing-lg);">
+                <button type="button" onclick="cerrarModalPedido()" class="btn btn-secondary">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Marcar Pedido</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Recibir Pedido -->
+<div id="modalRecibir" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 12px; padding: var(--spacing-xl); max-width: 500px; width: 90%;">
+        <h3 style="margin-bottom: var(--spacing-lg); color: var(--gray-900);">Recibir Pedido</h3>
+        <form method="POST" action="/producto/recibir_pedido">
+            <input type="hidden" name="id_producto" id="recibirIdProducto">
+            
+            <div style="background: var(--gray-50); padding: var(--spacing-md); border-radius: 8px; margin-bottom: var(--spacing-lg);">
+                <strong id="recibirNombreProducto" style="color: var(--gray-900);"></strong>
+                <div style="font-size: var(--text-sm); color: var(--gray-600); margin-top: 4px;">
+                    Cantidad pedida: <strong id="recibirCantidadPedida"></strong>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Cantidad Recibida</label>
+                <input type="number" name="cantidad_recibida" id="inputCantidadRecibida" required min="1">
+            </div>
+            
+            <div style="display: flex; gap: var(--spacing-md); justify-content: flex-end; margin-top: var(--spacing-lg);">
+                <button type="button" onclick="cerrarModalRecibir()" class="btn btn-secondary">Cancelar</button>
+                <button type="submit" class="btn btn-success">Confirmar Recepción</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/productos.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lightbox.js') }}"></script>
+<script>
+// Hacer función global para el botón
+window.limpiarFiltroVehiculo = function() {
+    document.getElementById('filtroMarca').value = '';
+    document.getElementById('filtroModelo').innerHTML = '<option value="">Primero seleccioná marca</option>';
+    document.getElementById('filtroModelo').disabled = true;
+    document.getElementById('filtroMotor').innerHTML = '<option value="">Primero seleccioná modelo</option>';
+    document.getElementById('filtroMotor').disabled = true;
+    
+    // Resetear productos compatibles y ocultar info
+    if (window.productosCompatibles !== undefined) {
+        window.productosCompatibles = [];
+    }
+    
+    document.getElementById('infoFiltroVehiculo').style.display = 'none';
+    
+    // Trigger del cambio en filtroMarca para que se actualice todo
+    const event = new Event('change');
+    document.getElementById('filtroMarca').dispatchEvent(event);
+};
+
+// Inicializar lightbox para imágenes
+document.addEventListener('DOMContentLoaded', function() {
+    const imagenes = document.querySelectorAll('.lightbox-trigger');
+    imagenes.forEach(img => {
+        img.addEventListener('click', function() {
+            mostrarLightbox(this.src);
+        });
+    });
+});
+
+function mostrarLightbox(src) {
+    // Crear overlay
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; align-items: center; justify-content: center; cursor: pointer;';
+    
+    // Crear imagen grande
+    const img = document.createElement('img');
+    img.src = src;
+    img.style.cssText = 'max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);';
+    
+    overlay.appendChild(img);
+    document.body.appendChild(overlay);
+    
+    // Cerrar al hacer click
+    overlay.addEventListener('click', function() {
+        document.body.removeChild(overlay);
+    });
+    
+    // Cerrar con ESC
+    document.addEventListener('keydown', function cerrarConEsc(e) {
+        if (e.key === 'Escape' && document.body.contains(overlay)) {
+            document.body.removeChild(overlay);
+            document.removeEventListener('keydown', cerrarConEsc);
+        }
+    });
+}
+
+function mostrarModalPedir(id, nombre) {
+    document.getElementById('pedidoIdProducto').value = id;
+    document.getElementById('pedidoNombreProducto').textContent = nombre;
+    document.getElementById('modalPedido').style.display = 'flex';
+}
+
+function cerrarModalPedido() {
+    document.getElementById('modalPedido').style.display = 'none';
+}
+
+function mostrarModalRecibir(id, nombre, cantidad) {
+    document.getElementById('recibirIdProducto').value = id;
+    document.getElementById('recibirNombreProducto').textContent = nombre;
+    document.getElementById('recibirCantidadPedida').textContent = cantidad;
+    document.getElementById('inputCantidadRecibida').value = cantidad;
+    document.getElementById('modalRecibir').style.display = 'flex';
+}
+
+function cerrarModalRecibir() {
+    document.getElementById('modalRecibir').style.display = 'none';
+}
+
+// Cerrar modales al hacer click fuera
+document.getElementById('modalPedido').addEventListener('click', function(e) {
+    if (e.target === this) cerrarModalPedido();
+});
+
+document.getElementById('modalRecibir').addEventListener('click', function(e) {
+    if (e.target === this) cerrarModalRecibir();
+});
+</script>
+{% endblock %}

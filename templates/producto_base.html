@@ -1,0 +1,86 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Nuevo Producto Base{% endblock %}
+
+{% block page_title %}Registrar Producto Base{% endblock %}
+
+{% block content %}
+
+<div class="card" style="max-width: 800px;">
+    <div class="card-header">
+        <h2 class="card-title">Nuevo Producto Base</h2>
+        <p style="font-size: var(--text-sm); color: var(--gray-600); margin-top: 4px;">
+            El producto base es la referencia principal. Después podés crear variantes (marcas) de este producto.
+        </p>
+    </div>
+    <div class="card-body">
+        
+        <form method="POST" enctype="multipart/form-data">
+            
+            <div class="form-group">
+                <label for="nombre">Nombre del Producto *</label>
+                <input 
+                    type="text" 
+                    id="nombre" 
+                    name="nombre" 
+                    placeholder="Ej: Filtro de Aceite, Pastilla de Freno, etc."
+                    required 
+                    autofocus
+                >
+            </div>
+            
+            <div class="form-group">
+                <label for="descripcion">Descripción (opcional)</label>
+                <textarea 
+                    id="descripcion" 
+                    name="descripcion" 
+                    rows="3"
+                    placeholder="Descripción detallada del producto..."
+                ></textarea>
+            </div>
+            
+            <div style="background: var(--gray-50); padding: var(--spacing-lg); border-radius: 8px; margin-bottom: var(--spacing-lg);">
+                <h3 style="font-size: var(--text-base); font-weight: 600; margin-bottom: var(--spacing-md); color: var(--gray-900);">Dimensiones (opcional)</h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--spacing-md);">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="alto">Alto</label>
+                        <input type="number" id="alto" name="alto" step="0.01" placeholder="cm">
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="ancho">Ancho</label>
+                        <input type="number" id="ancho" name="ancho" step="0.01" placeholder="cm">
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="largo">Largo</label>
+                        <input type="number" id="largo" name="largo" step="0.01" placeholder="cm">
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="diametro">Diámetro</label>
+                        <input type="number" id="diametro" name="diametro" step="0.01" placeholder="cm">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="imagen">Imagen (opcional)</label>
+                <input type="file" id="imagen" name="imagen" accept="image/*">
+            </div>
+            
+            <div style="display: flex; gap: var(--spacing-md);">
+                <button type="submit" class="btn btn-primary">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Crear Producto Base
+                </button>
+                <a href="/" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

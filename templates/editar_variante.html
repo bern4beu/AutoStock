@@ -1,0 +1,201 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Editar {{ variante.producto_base }} - {{ variante.marca }}{% endblock %}
+
+{% block page_title %}Editar Producto{% endblock %}
+
+{% block header_actions %}
+<a href="/productos" class="btn btn-secondary">
+    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path>
+    </svg>
+    Volver a Productos
+</a>
+{% endblock %}
+
+{% block content %}
+
+{% if current_user.es_admin() %}
+<!-- Información del Producto -->
+<div class="card mb-4">
+    <div class="card-header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h2 class="card-title">{{ variante.producto_base }}</h2>
+                <p style="font-size: var(--text-sm); color: var(--gray-600); margin-top: 4px;">
+                    Marca: {{ variante.marca }}
+                </p>
+            </div>
+            {% if variante.imagen_url %}
+            <img src="{{ variante.imagen_url }}" alt="{{ variante.producto_base }}" 
+                 style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid var(--gray-200);">
+            {% endif %}
+        </div>
+    </div>
+    <div class="card-body">
+        
+        <form method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="form_type" value="editar">
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg); margin-bottom: var(--spacing-lg);">
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="marca">Marca *</label>
+                    <input type="text" id="marca" name="marca" value="{{ variante.marca }}" required>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="calidad">Calidad</label>
+                    <input type="text" id="calidad" name="calidad" value="{{ variante.calidad or '' }}">
+                </div>
+                
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--spacing-lg); margin-bottom: var(--spacing-lg);">
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="precio">Precio de Venta *</label>
+                    <input type="number" id="precio" name="precio" step="0.01" value="{{ variante.precio }}" required>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="precio_compra">Precio de Compra</label>
+                    <input type="number" id="precio_compra" name="precio_compra" step="0.01" value="{{ variante.precio_compra or '' }}">
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="stock_minimo">Stock Mínimo</label>
+                    <input type="number" id="stock_minimo" name="stock_minimo" value="{{ variante.stock_minimo }}" required>
+                </div>
+                
+            </div>
+            
+            <div class="form-group">
+                <label for="ubicacion">Ubicación</label>
+                <input type="text" id="ubicacion" name="ubicacion" value="{{ variante.ubicacion or '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label>Proveedores</label>
+                <div style="max-height: 200px; overflow-y: auto; border: 1px solid var(--gray-300); border-radius: 6px; padding: var(--spacing-md); background: var(--gray-50);">
+                    {% for prov in proveedores %}
+                    <label style="display: flex; align-items: center; gap: 8px; padding: 6px 0; cursor: pointer;">
+                        <input type="checkbox" name="proveedores" value="{{ prov[0] }}" {% if prov[0] in variante.proveedores_ids %}checked{% endif %}>
+                        <span>{{ prov[1] }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="imagen">Cambiar Imagen</label>
+                <input type="file" id="imagen" name="imagen" accept="image/*">
+            </div>
+            
+            <button type="submit" class="btn btn-primary">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Guardar Cambios
+            </button>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<!-- Ajustar Stock -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h2 class="card-title">Ajustar Stock</h2>
+        <p style="font-size: var(--text-sm); color: var(--gray-600); margin-top: 4px;">
+            Stock actual: <strong>{{ variante.stock }}</strong> unidades
+        </p>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <input type="hidden" name="form_type" value="ajustar_stock">
+            <div style="display: grid; grid-template-columns: auto 1fr 2fr auto; gap: var(--spacing-md); align-items: flex-end;">
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Tipo</label>
+                    <select name="tipo_ajuste" required>
+                        <option value="positivo">Sumar (+)</option>
+                        <option value="negativo">Restar (-)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Cantidad</label>
+                    <input type="number" name="cantidad_ajuste" min="1" required>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Motivo</label>
+                    <input type="text" name="motivo_ajuste" placeholder="Ej: Corrección de inventario">
+                </div>
+                
+                <button type="submit" class="btn btn-outline">
+                    Ajustar Stock
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Historial de Movimientos -->
+<div class="table-container">
+    <div class="table-header">
+        <h2 class="table-title">Historial de Movimientos</h2>
+        <p style="font-size: var(--text-sm); color: var(--gray-500);">
+            Últimos 50 movimientos
+        </p>
+    </div>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Tipo</th>
+                    <th class="text-center">Cantidad</th>
+                    <th class="text-center">Stock Antes</th>
+                    <th class="text-center">Stock Después</th>
+                    {% if current_user.es_admin() %}<th class="text-right">Precio Compra</th>{% endif %}
+                    {% if current_user.es_admin() %}<th class="text-right">Precio Venta</th>{% endif %}
+                    <th>Motivo</th>
+                    <th>Usuario</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in movimientos %}
+                <tr>
+                    <td style="font-size: var(--text-sm);">{{ m.fecha }}</td>
+                    <td>
+                        {% if m.tipo == 'venta' %}
+                        <span class="badge badge-info">Venta</span>
+                        {% elif m.tipo == 'pedido_recibido' %}
+                        <span class="badge badge-success">Pedido</span>
+                        {% elif m.tipo == 'ajuste_positivo' %}
+                        <span class="badge badge-success">Ajuste +</span>
+                        {% elif m.tipo == 'ajuste_negativo' %}
+                        <span class="badge badge-danger">Ajuste -</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center" style="font-weight: 600;">{{ m.cantidad }}</td>
+                    <td class="text-center">{{ m.stock_antes }}</td>
+                    <td class="text-center" style="font-weight: 600;">{{ m.stock_despues }}</td>
+                    {% if current_user.es_admin() %}<td class="text-right">{% if m.precio_compra %}${{ m.precio_compra }}{% else %}-{% endif %}</td>{% endif %}
+                    {% if current_user.es_admin() %}<td class="text-right">{% if m.precio_venta %}${{ m.precio_venta }}{% else %}-{% endif %}</td>{% endif %}
+                    <td style="font-size: var(--text-sm); color: var(--gray-600);">{{ m.motivo or '-' }}</td>
+                    <td style="font-size: var(--text-sm);">{{ m.usuario or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/editar_variante.js') }}"></script>
+{% endblock %}

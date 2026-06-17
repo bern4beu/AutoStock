@@ -1,0 +1,203 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Ventas{% endblock %}
+
+{% block page_title %}Historial de Ventas{% endblock %}
+
+{% block header_actions %}
+<a href="/venta" class="btn btn-primary">
+    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+    </svg>
+    Nueva Venta
+</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- Filtros -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr) auto; gap: var(--spacing-md); align-items: flex-end;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Buscar Cliente</label>
+                <input 
+                    type="text" 
+                    id="buscarVenta" 
+                    placeholder="Buscar por cliente, fecha, total..."
+                >
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Desde</label>
+                <input type="date" id="filtroDesde">
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Hasta</label>
+                <input type="date" id="filtroHasta">
+            </div>
+            
+            <button type="button" onclick="limpiarFiltros()" class="btn btn-secondary">
+                Limpiar
+            </button>
+        </div>
+        
+        <div style="display: flex; gap: var(--spacing-md); margin-top: var(--spacing-md);">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" id="filtroMayorA">
+                <span style="font-size: var(--text-sm);">Total mayor a:</span>
+            </label>
+            <input type="number" id="montoMinimo" placeholder="0.00" step="0.01" min="0" style="width: 150px;">
+        </div>
+    </div>
+</div>
+
+<div class="table-container">
+    <div class="table-header">
+        <div>
+            <h2 class="table-title">Todas las Ventas</h2>
+            <p style="font-size: var(--text-sm); color: var(--gray-500); margin-top: 4px;">
+                Total: {{ ventas|length }} ventas registradas
+            </p>
+        </div>
+    </div>
+    
+    <div class="table-wrapper">
+        <table id="tablaVentas">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th class="text-right">Total</th>
+                    <th class="text-center">Método de Pago</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in ventas %}
+                <tr data-fecha="{{ v.fecha }}" data-total="{{ v.total }}">
+                    <td>
+                        <span class="badge badge-info">#{{ v.id }}</span>
+                    </td>
+                    <td style="font-weight: 500; color: var(--gray-700);">{{ v.fecha }}</td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 32px; height: 32px; background: var(--gray-100); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: var(--text-xs); font-weight: 600; color: var(--gray-600);">
+                                {{ v.cliente[0].upper() }}
+                            </div>
+                            <span>{{ v.cliente }}</span>
+                        </div>
+                    </td>
+                    <td class="text-right" style="font-weight: 700; font-size: var(--text-lg); color: var(--gray-900);">
+                        ${{ v.total }}
+                    </td>
+                    <td class="text-center">
+                        <span class="badge badge-gray" style="text-transform: capitalize;">
+                            {{ v.metodo_pago.replace('_', ' ') if v.metodo_pago else 'efectivo' }}
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <a href="/venta/{{ v.id }}" class="btn btn-sm btn-secondary">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            Ver Detalle
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Filtros de ventas
+const buscarVenta = document.getElementById('buscarVenta');
+const filtroDesde = document.getElementById('filtroDesde');
+const filtroHasta = document.getElementById('filtroHasta');
+const filtroMayorA = document.getElementById('filtroMayorA');
+const montoMinimo = document.getElementById('montoMinimo');
+const tablaVentas = document.getElementById('tablaVentas');
+
+function aplicarFiltros() {
+    const textoBusqueda = buscarVenta.value.toLowerCase();
+    const desde = filtroDesde.value;
+    const hasta = filtroHasta.value;
+    const usarMonto = filtroMayorA.checked;
+    const monto = parseFloat(montoMinimo.value) || 0;
+    
+    const filas = tablaVentas.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+    
+    for (let fila of filas) {
+        const textoFila = fila.textContent.toLowerCase();
+        const fechaStr = fila.dataset.fecha;
+        const totalStr = fila.dataset.total;
+        const total = parseFloat(totalStr.replace(',', ''));
+        
+        let mostrar = true;
+        
+        // Filtro de búsqueda
+        if (textoBusqueda && !textoFila.includes(textoBusqueda)) {
+            mostrar = false;
+        }
+        
+        // Filtro por fecha desde
+        if (desde && fechaStr) {
+            const fechaVenta = parsearFecha(fechaStr);
+            const fechaDesde = new Date(desde);
+            if (fechaVenta < fechaDesde) {
+                mostrar = false;
+            }
+        }
+        
+        // Filtro por fecha hasta
+        if (hasta && fechaStr) {
+            const fechaVenta = parsearFecha(fechaStr);
+            const fechaHasta = new Date(hasta);
+            fechaHasta.setHours(23, 59, 59);
+            if (fechaVenta > fechaHasta) {
+                mostrar = false;
+            }
+        }
+        
+        // Filtro por monto
+        if (usarMonto && monto > 0 && total < monto) {
+            mostrar = false;
+        }
+        
+        fila.style.display = mostrar ? '' : 'none';
+    }
+}
+
+function parsearFecha(fechaStr) {
+    // Formato: "DD/MM/YYYY HH:MM"
+    const partes = fechaStr.split(' ');
+    const fecha = partes[0].split('/');
+    const hora = partes[1] ? partes[1].split(':') : [0, 0];
+    return new Date(fecha[2], fecha[1] - 1, fecha[0], hora[0], hora[1]);
+}
+
+function limpiarFiltros() {
+    buscarVenta.value = '';
+    filtroDesde.value = '';
+    filtroHasta.value = '';
+    filtroMayorA.checked = false;
+    montoMinimo.value = '';
+    aplicarFiltros();
+}
+
+// Event listeners
+if (buscarVenta) buscarVenta.addEventListener('input', aplicarFiltros);
+if (filtroDesde) filtroDesde.addEventListener('change', aplicarFiltros);
+if (filtroHasta) filtroHasta.addEventListener('change', aplicarFiltros);
+if (filtroMayorA) filtroMayorA.addEventListener('change', aplicarFiltros);
+if (montoMinimo) montoMinimo.addEventListener('input', aplicarFiltros);
+</script>
+{% endblock %}

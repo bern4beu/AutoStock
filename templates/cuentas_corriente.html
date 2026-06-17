@@ -1,0 +1,166 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Cuentas Corrientes{% endblock %}
+
+{% block page_title %}Cuentas Corrientes{% endblock %}
+
+{% block content %}
+
+<!-- Resumen de saldos -->
+<div class="table-container mb-4">
+    <div class="table-header">
+        <h2 class="table-title">Clientes con saldo pendiente</h2>
+    </div>
+
+    {% if cuentas %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Contacto</th>
+                    <th class="text-right">Saldo pendiente</th>
+                    <th class="text-center">Registrar pago</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cuenta in cuentas %}
+                <tr>
+                    <td style="font-weight: 500;">{{ cuenta.cliente }}</td>
+                    <td style="color: var(--gray-600); font-size: var(--text-sm);">{{ cuenta.contacto }}</td>
+                    <td class="text-right" style="font-weight: 600; color: var(--danger);">
+                        ${{ cuenta.saldo }}
+                    </td>
+                    <td class="text-center">
+                        <button onclick="mostrarModalPago('{{ cuenta.id_cliente }}', '{{ cuenta.cliente }}', '{{ cuenta.saldo }}')"
+                                class="btn btn-sm btn-primary">
+                            Registrar pago
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="padding: 3rem; text-align: center; color: var(--gray-500);">
+        No hay cuentas corrientes con saldo pendiente.
+    </div>
+    {% endif %}
+</div>
+
+<!-- Historial de movimientos -->
+<div class="table-container">
+    <div class="table-header">
+        <h2 class="table-title">Historial de movimientos</h2>
+    </div>
+
+    {% if movimientos %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th class="text-center">Tipo</th>
+                    <th class="text-right">Monto</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in movimientos %}
+                <tr>
+                    <td style="font-size: var(--text-sm);">{{ m.fecha }}</td>
+                    <td style="font-weight: 500;">{{ m.cliente }}</td>
+                    <td class="text-center">
+                        {% if m.tipo == 'cargo' %}
+                        <span class="badge badge-danger">Cargo</span>
+                        {% else %}
+                        <span class="badge badge-success">Pago</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-right" style="font-weight: 600;">
+                        ${{ m.monto }}
+                    </td>
+                    <td style="font-size: var(--text-sm); color: var(--gray-600);">
+                        {{ m.descripcion }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="padding: 3rem; text-align: center; color: var(--gray-500);">
+        No hay movimientos registrados todavía.
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal registrar pago -->
+<div id="modalPago" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 12px; padding: var(--spacing-xl); max-width: 500px; width: 90%;">
+        <h3 style="margin-bottom: var(--spacing-lg); color: var(--gray-900);">Registrar pago</h3>
+        <form method="POST" action="/cuentas_corriente/pagar">
+            <input type="hidden" name="id_cliente" id="pagoIdCliente">
+
+            <div style="background: var(--gray-50); padding: var(--spacing-md); border-radius: 8px; margin-bottom: var(--spacing-lg);">
+                <strong id="pagoNombreCliente" style="color: var(--gray-900);"></strong>
+                <div style="font-size: var(--text-sm); color: var(--gray-600); margin-top: 4px;">
+                    Saldo pendiente: <strong id="pagoSaldoCliente"></strong>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Monto del pago</label>
+                <input type="number" name="monto" id="pagoMonto" step="0.01" min="0.01" required>
+            </div>
+
+            <div class="form-group">
+                <label>Método de pago</label>
+                <select name="metodo_pago" required>
+                    <option value="efectivo">Efectivo</option>
+                    <option value="transferencia">Transferencia</option>
+                    <option value="tarjeta_credito">Tarjeta de Crédito</option>
+                    <option value="tarjeta_debito">Tarjeta de Débito</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Descripción (opcional)</label>
+                <input type="text" name="descripcion" placeholder="Observaciones...">
+            </div>
+
+            <div style="display: flex; gap: var(--spacing-md); justify-content: flex-end; margin-top: var(--spacing-lg);">
+                <button type="button" onclick="cerrarModalPago()" class="btn btn-secondary">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    Confirmar pago
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function mostrarModalPago(idCliente, nombre, saldo) {
+    document.getElementById('pagoIdCliente').value = idCliente;
+    document.getElementById('pagoNombreCliente').textContent = nombre;
+    document.getElementById('pagoSaldoCliente').textContent = '$' + saldo;
+    document.getElementById('pagoMonto').value = saldo;
+    document.getElementById('modalPago').style.display = 'flex';
+}
+
+function cerrarModalPago() {
+    document.getElementById('modalPago').style.display = 'none';
+}
+
+document.getElementById('modalPago').addEventListener('click', function(e) {
+    if (e.target === this) cerrarModalPago();
+});
+</script>
+{% endblock %}

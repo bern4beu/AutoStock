@@ -1,0 +1,133 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Proveedores{% endblock %}
+
+{% block page_title %}Gestión de Proveedores{% endblock %}
+
+{% block content %}
+
+<!-- Formulario Agregar Proveedor -->
+<div class="card mb-4" style="max-width: 600px;">
+    <div class="card-header">
+        <h2 class="card-title">Registrar Nuevo Proveedor</h2>
+    </div>
+    <div class="card-body">
+        
+        <form method="POST">
+            <div class="form-group">
+                <label for="nombre">Nombre del Proveedor *</label>
+                <input 
+                    type="text" 
+                    id="nombre" 
+                    name="nombre" 
+                    placeholder="Ej: Importadora XYZ, Proveedor ABC, etc."
+                    required 
+                    autofocus
+                >
+            </div>
+            
+            <div class="form-group">
+                <label for="contacto">Contacto (opcional)</label>
+                <input 
+                    type="text" 
+                    id="contacto" 
+                    name="contacto" 
+                    placeholder="Teléfono, email, dirección, etc."
+                >
+            </div>
+            
+            <div style="display: flex; gap: var(--spacing-md);">
+                <button type="submit" class="btn btn-primary">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Registrar Proveedor
+                </button>
+                <a href="/" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lista de Proveedores -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div>
+            <label>Buscar Proveedor</label>
+            <input type="text" id="buscarProveedor" placeholder="Buscar por nombre o contacto..." style="max-width: 400px;">
+        </div>
+    </div>
+</div>
+
+<div class="table-container">
+    <div class="table-header">
+        <div>
+            <h2 class="table-title">Proveedores Registrados</h2>
+            <p style="font-size: var(--text-sm); color: var(--gray-500); margin-top: 4px;">
+                <span id="contadorProveedores">{{ proveedores|length }} proveedores en total</span>
+            </p>
+        </div>
+    </div>
+    
+    {% if proveedores %}
+    <div class="table-wrapper">
+        <table id="tablaProveedores">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Contacto</th>
+                    <th>Fecha de Registro</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in proveedores %}
+                <tr>
+                    <td>
+                        <span class="badge badge-info">#{{ p.id }}</span>
+                    </td>
+                    <td style="font-weight: 500; color: var(--gray-900);">{{ p.nombre }}</td>
+                    <td style="color: var(--gray-600);">{{ p.contacto or '-' }}</td>
+                    <td style="font-size: var(--text-sm); color: var(--gray-600);">{{ p.fecha }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="padding: var(--spacing-2xl); text-align: center;">
+        <p style="color: var(--gray-600);">No hay proveedores registrados aún.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const buscarProveedor = document.getElementById('buscarProveedor');
+const tablaProveedores = document.getElementById('tablaProveedores');
+
+function aplicarFiltros() {
+    if (!tablaProveedores) return;
+    
+    const textoBusqueda = buscarProveedor.value.toLowerCase();
+    const tbody = tablaProveedores.getElementsByTagName('tbody')[0];
+    if (!tbody) return;
+    
+    const filas = tbody.getElementsByTagName('tr');
+    let visibles = 0;
+    
+    for (let fila of filas) {
+        const textoFila = fila.textContent.toLowerCase();
+        const mostrar = !textoBusqueda || textoFila.includes(textoBusqueda);
+        fila.style.display = mostrar ? '' : 'none';
+        if (mostrar) visibles++;
+    }
+    
+    document.getElementById('contadorProveedores').textContent = `Mostrando ${visibles} de ${filas.length} proveedores`;
+}
+
+if (buscarProveedor) buscarProveedor.addEventListener('input', aplicarFiltros);
+</script>
+{% endblock %}

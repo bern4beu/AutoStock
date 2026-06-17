@@ -1,0 +1,200 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Asociar Producto{% endblock %}
+
+{% block page_title %}Asociar Producto a Vehículos{% endblock %}
+
+{% block content %}
+
+<div class="card" style="max-width: 700px;">
+    <div class="card-header">
+        <h2 class="card-title">Asociar Producto a Vehículos</h2>
+        <p style="font-size: var(--text-sm); color: var(--gray-600); margin-top: 4px;">
+            Seleccioná a qué vehículos aplica este producto
+        </p>
+    </div>
+    <div class="card-body">
+        
+        <form method="POST">
+            
+            <div class="form-group">
+                <label for="id_producto_base">Producto (Variante) *</label>
+                <select name="id_producto_variante" id="id_producto_variante" required>
+                    <option value="">Seleccionar producto...</option>
+                    {% for p in productos %}
+                    <option value="{{ p[0] }}">{{ p[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Filtros para vehículos -->
+            <div style="background: var(--gray-50); padding: var(--spacing-lg); border-radius: 8px; margin-bottom: var(--spacing-lg);">
+                <h3 style="font-size: var(--text-base); font-weight: 600; margin-bottom: var(--spacing-md); color: var(--gray-900);">Filtrar Vehículos</h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-md);">
+                    <div>
+                        <label>Marca</label>
+                        <select id="filtroMarca" style="width: 100%;">
+                            <option value="">Todas</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label>Modelo</label>
+                        <select id="filtroModelo" style="width: 100%;" disabled>
+                            <option value="">Seleccionar marca</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label>Motor</label>
+                        <select id="filtroMotor" style="width: 100%;" disabled>
+                            <option value="">Seleccionar modelo</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Vehículos Compatibles *</label>
+                <div style="max-height: 300px; overflow-y: auto; border: 1px solid var(--gray-300); border-radius: 6px; padding: var(--spacing-md); background: var(--gray-50);">
+                    {% for v in vehiculos %}
+                    <label style="display: flex; align-items: center; gap: 8px; padding: 6px 0; cursor: pointer;">
+                        <input type="checkbox" name="vehiculos" value="{{ v[0] }}">
+                        <span>{{ v[1] }} - {{ v[2] }}{% if v[3] %} ({{ v[3] }}){% endif %}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+                <small style="color: var(--gray-500);">Seleccioná al menos un vehículo</small>
+            </div>
+            
+            <div style="display: flex; gap: var(--spacing-md);">
+                <button type="submit" class="btn btn-primary">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                    </svg>
+                    Asociar
+                </button>
+                <a href="/" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Validar que se seleccione al menos un vehículo
+document.querySelector('form').addEventListener('submit', function(e) {
+    const checkboxes = document.querySelectorAll('input[name="vehiculos"]:checked');
+    if (checkboxes.length === 0) {
+        e.preventDefault();
+        alert('Debés seleccionar al menos un vehículo');
+        return false;
+    }
+});
+
+// Filtros de vehículos
+const filtroMarca = document.getElementById('filtroMarca');
+const filtroModelo = document.getElementById('filtroModelo');
+const filtroMotor = document.getElementById('filtroMotor');
+
+// Cargar marcas
+fetch('/api/marcas_vehiculo')
+    .then(r => r.json())
+    .then(marcas => {
+        marcas.forEach(marca => {
+            const option = document.createElement('option');
+            option.value = marca;
+            option.textContent = marca;
+            filtroMarca.appendChild(option);
+        });
+    });
+
+// Cuando cambia la marca
+filtroMarca.addEventListener('change', function() {
+    const marca = this.value;
+    
+    filtroModelo.innerHTML = '<option value="">Todos</option>';
+    filtroMotor.innerHTML = '<option value="">Todos</option>';
+    filtroMotor.disabled = true;
+    
+    if (marca) {
+        filtroModelo.disabled = false;
+        fetch(`/api/modelos_vehiculo/${encodeURIComponent(marca)}`)
+            .then(r => r.json())
+            .then(modelos => {
+                modelos.forEach(modelo => {
+                    const option = document.createElement('option');
+                    option.value = modelo;
+                    option.textContent = modelo;
+                    filtroModelo.appendChild(option);
+                });
+            });
+    } else {
+        filtroModelo.disabled = true;
+    }
+    
+    aplicarFiltros();
+});
+
+// Cuando cambia el modelo
+filtroModelo.addEventListener('change', function() {
+    const marca = filtroMarca.value;
+    const modelo = this.value;
+    
+    filtroMotor.innerHTML = '<option value="">Todos</option>';
+    
+    if (marca && modelo) {
+        filtroMotor.disabled = false;
+        fetch(`/api/motores_vehiculo/${encodeURIComponent(marca)}/${encodeURIComponent(modelo)}`)
+            .then(r => r.json())
+            .then(motores => {
+                motores.forEach(motor => {
+                    const option = document.createElement('option');
+                    option.value = motor;
+                    option.textContent = motor;
+                    filtroMotor.appendChild(option);
+                });
+            });
+    } else {
+        filtroMotor.disabled = true;
+    }
+    
+    aplicarFiltros();
+});
+
+// Cuando cambia el motor
+filtroMotor.addEventListener('change', aplicarFiltros);
+
+function aplicarFiltros() {
+    const marca = filtroMarca.value.toLowerCase();
+    const modelo = filtroModelo.value.toLowerCase();
+    const motor = filtroMotor.value.toLowerCase();
+    
+    const checkboxes = document.querySelectorAll('input[name="vehiculos"]');
+    
+    checkboxes.forEach(checkbox => {
+        const label = checkbox.parentElement;
+        const texto = label.textContent.toLowerCase();
+        
+        let mostrar = true;
+        
+        if (marca && !texto.includes(marca)) {
+            mostrar = false;
+        }
+        
+        if (modelo && !texto.includes(modelo)) {
+            mostrar = false;
+        }
+        
+        if (motor && motor !== 'sin motor especificado' && !texto.includes(motor)) {
+            mostrar = false;
+        }
+        
+        label.style.display = mostrar ? 'flex' : 'none';
+    });
+}
+</script>
+{% endblock %}

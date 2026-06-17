@@ -1,0 +1,111 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Movimientos de Stock{% endblock %}
+
+{% block page_title %}Historial de Movimientos{% endblock %}
+
+{% block content %}
+
+<!-- Filtros -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET">
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr) auto; gap: var(--spacing-md); align-items: flex-end;">
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Tipo de Movimiento</label>
+                    <select name="tipo">
+                        <option value="">Todos</option>
+                        <option value="venta" {% if filtro.tipo == 'venta' %}selected{% endif %}>Venta</option>
+                        <option value="recepcion_pedido" {% if filtro.tipo == 'recepcion_pedido' %}selected{% endif %}>Pedido Recibido</option>
+                        <option value="ajuste_positivo" {% if filtro.tipo == 'ajuste_positivo' %}selected{% endif %}>Ajuste +</option>
+                        <option value="ajuste_negativo" {% if filtro.tipo == 'ajuste_negativo' %}selected{% endif %}>Ajuste -</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Producto</label>
+                    <input type="text" name="producto" value="{{ filtro.producto or '' }}" placeholder="Buscar...">
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Desde</label>
+                    <input type="date" name="desde" value="{{ filtro.desde or '' }}">
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Hasta</label>
+                    <input type="date" name="hasta" value="{{ filtro.hasta or '' }}">
+                </div>
+                
+                <div style="display: flex; gap: var(--spacing-sm);">
+                    <button type="submit" class="btn btn-primary">Filtrar</button>
+                    <a href="/movimientos_stock" class="btn btn-secondary">Limpiar</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tabla de Movimientos -->
+<div class="table-container">
+    <div class="table-header">
+        <h2 class="table-title">Últimos {{ movimientos|length }} Movimientos</h2>
+    </div>
+    
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Producto</th>
+                    <th>Tipo</th>
+                    <th class="text-center">Cantidad</th>
+                    <th class="text-center">Stock Antes</th>
+                    <th class="text-center">Stock Después</th>
+                    <th>Motivo</th>
+                    <th class="text-right">Precio Compra</th>
+                    <th class="text-right">Precio Venta</th>
+                    <th>Usuario</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in movimientos %}
+                <tr>
+                    <td style="font-size: var(--text-sm); color: var(--gray-600);">{{ m.fecha }}</td>
+                    <td>
+                        <div style="font-weight: 500;">{{ m.producto }}</div>
+                        <div style="font-size: var(--text-xs); color: var(--gray-500);">{{ m.marca }}</div>
+                    </td>
+                    <td>
+                        {% if m.tipo == 'venta' %}
+                        <span class="badge badge-info">Venta</span>
+                        {% elif m.tipo == 'recepcion_pedido' %}
+                        <span class="badge badge-success">Pedido</span>
+                        {% elif m.tipo == 'ajuste_positivo' %}
+                        <span class="badge badge-success">Ajuste +</span>
+                        {% elif m.tipo == 'ajuste_negativo' %}
+                        <span class="badge badge-danger">Ajuste -</span>
+                        {% else %}
+                        <span class="badge badge-gray">{{ m.tipo }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center" style="font-weight: 600;">{{ m.cantidad }}</td>
+                    <td class="text-center">{{ m.stock_antes }}</td>
+                    <td class="text-center" style="font-weight: 600; color: var(--gray-900);">{{ m.stock_despues }}</td>
+                    <td style="font-size: var(--text-sm); color: var(--gray-600);">{{ m.motivo or '-' }}</td>
+                    <td class="text-right" style="color: var(--gray-600);">
+                        {% if m.precio_compra %}${{ m.precio_compra }}{% else %}-{% endif %}
+                    </td>
+                    <td class="text-right" style="color: var(--gray-600);">
+                        {% if m.precio_venta %}${{ m.precio_venta }}{% else %}-{% endif %}
+                    </td>
+                    <td style="font-size: var(--text-sm); color: var(--gray-600);">{{ m.usuario or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

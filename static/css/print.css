@@ -1,0 +1,179 @@
+/* Este archivo SOLO se aplica cuando se imprime */
+
+/* Mostrar el remito al imprimir (estaba oculto en pantalla) */
+#remito {
+    display: block !important;
+}
+
+/* Ocultar todo por defecto */
+body * {
+    visibility: hidden;
+}
+
+/* Mostrar solo el remito */
+#remito, #remito * {
+    visibility: visible;
+}
+
+/* Posicionar el remito en la esquina superior izquierda */
+#remito {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 40px;
+    font-family: Arial, sans-serif;
+    color: #000;
+}
+
+/* Header del remito */
+.remito-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #000;
+}
+
+.remito-titulo {
+    font-size: 28px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.remito-numero {
+    font-size: 16px;
+    color: #333;
+    margin: 5px 0 0 0;
+}
+
+.remito-fecha {
+    font-size: 14px;
+    color: #333;
+    text-align: right;
+}
+
+/* Info del cliente */
+.remito-cliente {
+    margin-bottom: 30px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.remito-cliente h3 {
+    margin: 0 0 8px 0;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #666;
+}
+
+.remito-cliente p {
+    margin: 0;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Tabla de productos */
+.remito-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+}
+
+.remito-tabla th {
+    background: #333;
+    color: white;
+    padding: 10px 15px;
+    text-align: left;
+    font-size: 13px;
+    text-transform: uppercase;
+}
+
+.remito-tabla th.text-right {
+    text-align: right;
+}
+
+.remito-tabla td {
+    padding: 10px 15px;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+}
+
+.remito-tabla td.text-right {
+    text-align: right;
+}
+
+.remito-tabla td.text-center {
+    text-align: center;
+}
+
+.remito-tabla tbody tr:last-child td {
+    border-bottom: 2px solid #333;
+}
+
+/* Total */
+.remito-total {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 60px;
+}
+
+.remito-total-box {
+    border: 2px solid #333;
+    padding: 15px 30px;
+    min-width: 250px;
+}
+
+.remito-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 40px;
+}
+
+.remito-total-label {
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.remito-total-monto {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+/* Firma */
+.remito-firma {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 60px;
+    padding-top: 20px;
+}
+
+.remito-firma-item {
+    text-align: center;
+    width: 200px;
+}
+
+.remito-firma-linea {
+    border-top: 1px solid #333;
+    margin-bottom: 8px;
+}
+
+.remito-firma-label {
+    font-size: 12px;
+    color: #666;
+}
+
+/* Footer del remito */
+.remito-footer {
+    margin-top: 40px;
+    padding-top: 15px;
+    border-top: 1px solid #ddd;
+    text-align: center;
+    font-size: 11px;
+    color: #999;
+}

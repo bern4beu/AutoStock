@@ -1,0 +1,118 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Nueva Venta{% endblock %}
+
+{% block page_title %}Registrar Nueva Venta{% endblock %}
+
+{% block header_actions %}
+<a href="/ventas" class="btn btn-secondary">
+    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path>
+    </svg>
+    Ver Ventas
+</a>
+{% endblock %}
+
+{% block content %}
+
+<form method="POST">
+    
+    <!-- Cliente -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2 class="card-title">Información del Cliente</h2>
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <label for="id_cliente">Cliente</label>
+                <select name="id_cliente" id="id_cliente">
+                    <option value="">Cliente Mostrador</option>
+                    {% for c in clientes %}
+                    <option value="{{ c[0] }}">{{ c[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Productos -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2 class="card-title">Productos</h2>
+        </div>
+        <div class="card-body">
+            <div id="productos-container">
+                <!-- Los productos se agregan dinámicamente -->
+            </div>
+            
+            <button type="button" onclick="agregarProducto()" class="btn btn-outline" style="width: 100%; margin-top: var(--spacing-md);">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Agregar Producto
+            </button>
+        </div>
+    </div>
+    
+    <!-- Total -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-size: var(--text-sm); color: var(--gray-600);">Total de la Venta</div>
+                    <div id="total-venta" style="font-size: var(--text-3xl); font-weight: 700; color: var(--gray-900); margin-top: 4px;">$0.00</div>
+                </div>
+                <div class="form-group">
+                    <label>Tipo de pago</label>
+                    <div style="display: flex; border: 1px solid var(--gray-300); border-radius: 8px; overflow: hidden; width: fit-content;">
+                        <label style="margin: 0;">
+                            <input type="radio" name="tipo_pago" value="contado" checked style="display: none;">
+                            <span id="btn_contado" style="display: block; padding: 8px 20px; cursor: pointer; background: var(--primary); color: white; font-size: var(--text-sm); font-weight: 500; transition: all 0.2s;">
+                                Contado
+                            </span>
+                        </label>
+                        <label style="margin: 0;">
+                            <input type="radio" name="tipo_pago" value="cuenta_corriente" style="display: none;">
+                            <span id="btn_cc" style="display: block; padding: 8px 20px; cursor: pointer; background: white; color: var(--gray-700); font-size: var(--text-sm); font-weight: 500; transition: all 0.2s;">
+                                Cuenta corriente
+                            </span>
+                        </label>
+                    </div>
+                    <div id="aviso_cc" style="display:none; color: #e74c3c; font-size: 13px; margin-top: 6px;">
+                        ⚠️ Para cuenta corriente necesitás seleccionar un cliente.
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Método de pago</label>
+                    <select name="metodo_pago" id="metodo_pago">
+                        <option value="efectivo">Efectivo</option>
+                        <option value="transferencia">Transferencia</option>
+                        <option value="tarjeta_credito">Tarjeta de Crédito</option>
+                        <option value="tarjeta_debito">Tarjeta de Débito</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success btn-lg">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Registrar Venta
+                </button>
+            </div>
+        </div>
+    </div>
+    
+</form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Pasar productos disponibles a JavaScript
+window.productosDisponibles = `
+    {% for p in productos %}
+    <option value="{{ p[0] }}">{{ p[1] }}</option>
+    {% endfor %}
+`;
+</script>
+<script src="{{ url_for('static', filename='js/venta.js') }}"></script>
+{% endblock %}

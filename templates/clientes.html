@@ -1,0 +1,133 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Clientes{% endblock %}
+
+{% block page_title %}Gestión de Clientes{% endblock %}
+
+{% block content %}
+
+<!-- Formulario Agregar Cliente -->
+<div class="card mb-4" style="max-width: 600px;">
+    <div class="card-header">
+        <h2 class="card-title">Registrar Nuevo Cliente</h2>
+    </div>
+    <div class="card-body">
+        
+        <form method="POST">
+            <div class="form-group">
+                <label for="nombre">Nombre del Cliente *</label>
+                <input 
+                    type="text" 
+                    id="nombre" 
+                    name="nombre" 
+                    placeholder="Ej: Juan Pérez, Empresa ABC, etc."
+                    required 
+                    autofocus
+                >
+            </div>
+            
+            <div class="form-group">
+                <label for="contacto">Contacto (opcional)</label>
+                <input 
+                    type="text" 
+                    id="contacto" 
+                    name="contacto" 
+                    placeholder="Teléfono, email, etc."
+                >
+            </div>
+            
+            <div style="display: flex; gap: var(--spacing-md);">
+                <button type="submit" class="btn btn-primary">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Registrar Cliente
+                </button>
+                <a href="/" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lista de Clientes -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div>
+            <label>Buscar Cliente</label>
+            <input type="text" id="buscarCliente" placeholder="Buscar por nombre o contacto..." style="max-width: 400px;">
+        </div>
+    </div>
+</div>
+
+<div class="table-container">
+    <div class="table-header">
+        <div>
+            <h2 class="table-title">Clientes Registrados</h2>
+            <p style="font-size: var(--text-sm); color: var(--gray-500); margin-top: 4px;">
+                <span id="contadorClientes">{{ clientes|length }} clientes en total</span>
+            </p>
+        </div>
+    </div>
+    
+    {% if clientes %}
+    <div class="table-wrapper">
+        <table id="tablaClientes">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Contacto</th>
+                    <th>Fecha de Registro</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in clientes %}
+                <tr>
+                    <td>
+                        <span class="badge badge-info">#{{ c.id }}</span>
+                    </td>
+                    <td style="font-weight: 500; color: var(--gray-900);">{{ c.nombre }}</td>
+                    <td style="color: var(--gray-600);">{{ c.contacto or '-' }}</td>
+                    <td style="font-size: var(--text-sm); color: var(--gray-600);">{{ c.fecha }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="padding: var(--spacing-2xl); text-align: center;">
+        <p style="color: var(--gray-600);">No hay clientes registrados aún.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const buscarCliente = document.getElementById('buscarCliente');
+const tablaClientes = document.getElementById('tablaClientes');
+
+function aplicarFiltros() {
+    if (!tablaClientes) return;
+    
+    const textoBusqueda = buscarCliente.value.toLowerCase();
+    const tbody = tablaClientes.getElementsByTagName('tbody')[0];
+    if (!tbody) return;
+    
+    const filas = tbody.getElementsByTagName('tr');
+    let visibles = 0;
+    
+    for (let fila of filas) {
+        const textoFila = fila.textContent.toLowerCase();
+        const mostrar = !textoBusqueda || textoFila.includes(textoBusqueda);
+        fila.style.display = mostrar ? '' : 'none';
+        if (mostrar) visibles++;
+    }
+    
+    document.getElementById('contadorClientes').textContent = `Mostrando ${visibles} de ${filas.length} clientes`;
+}
+
+if (buscarCliente) buscarCliente.addEventListener('input', aplicarFiltros);
+</script>
+{% endblock %}

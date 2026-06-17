@@ -1,0 +1,384 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Vehículos{% endblock %}
+
+{% block page_title %}Gestión de Vehículos{% endblock %}
+
+{% block content %}
+
+<!-- Formulario Agregar Vehículo -->
+<div class="card mb-4" style="max-width: 700px;">
+    <div class="card-header">
+        <h2 class="card-title">Registrar Nuevo Vehículo</h2>
+    </div>
+    <div class="card-body">
+        
+        <form method="POST">
+            
+            <div class="form-group">
+                <label for="marca">Marca *</label>
+                <input 
+                    type="text" 
+                    id="marca" 
+                    name="marca" 
+                    placeholder="Ej: Toyota, Volkswagen, Ford, etc."
+                    list="marcas-existentes"
+                    required 
+                    autofocus
+                >
+                <datalist id="marcas-existentes">
+                    {% for m in marcas_existentes %}
+                    <option value="{{ m }}">
+                    {% endfor %}
+                </datalist>
+                <small style="color: var(--gray-500);">Empezá a escribir para ver sugerencias</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="modelo">Modelo *</label>
+                <input 
+                    type="text" 
+                    id="modelo" 
+                    name="modelo" 
+                    placeholder="Ej: Corolla, Golf, Focus, etc."
+                    list="modelos-existentes"
+                    required
+                >
+                <datalist id="modelos-existentes">
+                    {% for m in modelos_existentes %}
+                    <option value="{{ m }}">
+                    {% endfor %}
+                </datalist>
+            </div>
+            
+            <div class="form-group">
+                <label for="motor">Motor *</label>
+                <input 
+                    type="text" 
+                    id="motor" 
+                    name="motor" 
+                    placeholder="Ej: 1.8L Hybrid, 1.4 TSI, 2.0L Duratec, etc."
+                    required
+                >
+            </div>
+            
+            <div style="display: flex; gap: var(--spacing-md);">
+                <button type="submit" class="btn btn-primary">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Registrar Vehículo
+                </button>
+                <a href="/" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card mb-4">
+    <div class="card-body">
+        <!-- Búsqueda general -->
+        <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+            <label>Buscar Vehículo</label>
+            <input type="text" id="buscarVehiculo" placeholder="Buscar por marca, modelo o motor..." style="width: 100%;">
+        </div>
+        
+        <!-- Filtros específicos -->
+        <div style="background: var(--gray-50); padding: var(--spacing-md); border-radius: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
+                <label style="font-size: var(--text-sm); font-weight: 600; color: var(--gray-700); margin: 0;">
+                    Filtros Específicos
+                </label>
+                <button type="button" onclick="limpiarFiltrosVehiculo()" class="btn btn-secondary btn-sm">
+                    Limpiar
+                </button>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-md);">
+                <div>
+                    <label style="font-size: var(--text-sm);">Marca</label>
+                    <select id="filtroMarcaVehiculo">
+                        <option value="">Todas</option>
+                        {% for m in marcas_existentes %}
+                        <option value="{{ m }}">{{ m }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: var(--text-sm);">Modelo</label>
+                    <select id="filtroModeloVehiculo">
+                        <option value="">Todos</option>
+                        {% for m in modelos_existentes %}
+                        <option value="{{ m }}">{{ m }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: var(--text-sm);">Motor</label>
+                    <select id="filtroMotorVehiculo">
+                        <option value="">Todos</option>
+                        {% for motor in motores_existentes %}
+                        <option value="{{ motor }}">{{ motor }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de Vehículos -->
+<div class="table-container">
+    <div class="table-header">
+        <div>
+            <h2 class="table-title">Vehículos registrados</h2>
+            <p style="font-size: var(--text-sm); color: var(--gray-500); margin-top: 4px;">
+                <span id="contadorVehiculos">{{ vehiculos|length }} vehículos en total</span>
+            </p>
+        </div>
+    </div>
+    
+    {% if vehiculos %}
+    <div class="table-wrapper">
+        <table id="tablaVehiculos">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Marca</th>
+                    <th>Modelo</th>
+                    <th>Variante</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in vehiculos %}
+                <tr>
+                    <td>
+                        <span class="badge badge-info">#{{ v.id }}</span>
+                    </td>
+                    <td style="font-weight: 500; color: var(--gray-900);">{{ v.marca }}</td>
+                    <td style="color: var(--gray-700);">{{ v.modelo }}</td>
+                    <td>
+                        {% if v.motor %}
+                        <span class="badge badge-gray">{{ v.motor }}</span>
+                        {% else %}
+                        <span style="color: var(--gray-400);">-</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="padding: var(--spacing-2xl); text-align: center;">
+        <p style="color: var(--gray-600);">No hay vehículos registradas aún.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const buscarVehiculo = document.getElementById('buscarVehiculo');
+const filtroMarcaVehiculo = document.getElementById('filtroMarcaVehiculo');
+const filtroModeloVehiculo = document.getElementById('filtroModeloVehiculo');
+const filtroMotorVehiculo = document.getElementById('filtroMotorVehiculo');
+const tablaVehiculos = document.getElementById('tablaVehiculos');
+
+// Guardar todas las opciones originales
+const modelosOriginales = Array.from(filtroModeloVehiculo.options).slice(1); // Sin "Todos"
+const motoresOriginales = Array.from(filtroMotorVehiculo.options).slice(1); // Sin "Todos"
+
+// Cuando cambia la marca, filtrar modelos
+filtroMarcaVehiculo.addEventListener('change', function() {
+    const marcaSeleccionada = this.value;
+    
+    // Resetear modelo y motor
+    filtroModeloVehiculo.innerHTML = '<option value="">Todos</option>';
+    filtroMotorVehiculo.innerHTML = '<option value="">Todos</option>';
+    
+    if (marcaSeleccionada) {
+        // Filtrar modelos que corresponden a esta marca
+        const modelosFiltrados = new Set();
+        
+        // Buscar en la tabla qué modelos tiene esta marca
+        const tbody = tablaVehiculos.getElementsByTagName('tbody')[0];
+        if (tbody) {
+            const filas = tbody.getElementsByTagName('tr');
+            for (let fila of filas) {
+                const marca = fila.cells[1].textContent.trim();
+                const modelo = fila.cells[2].textContent.trim();
+                
+                if (marca === marcaSeleccionada) {
+                    modelosFiltrados.add(modelo);
+                }
+            }
+        }
+        
+        // Agregar solo los modelos de esta marca
+        modelosFiltrados.forEach(modelo => {
+            const option = document.createElement('option');
+            option.value = modelo;
+            option.textContent = modelo;
+            filtroModeloVehiculo.appendChild(option);
+        });
+        
+        filtroModeloVehiculo.disabled = false;
+    } else {
+        // Si no hay marca, mostrar todos los modelos
+        modelosOriginales.forEach(opt => {
+            filtroModeloVehiculo.appendChild(opt.cloneNode(true));
+        });
+        filtroModeloVehiculo.disabled = false;
+    }
+    
+    aplicarFiltros();
+});
+
+// Cuando cambia el modelo, filtrar motores
+filtroModeloVehiculo.addEventListener('change', function() {
+    const marcaSeleccionada = filtroMarcaVehiculo.value;
+    const modeloSeleccionado = this.value;
+    
+    // Resetear motor
+    filtroMotorVehiculo.innerHTML = '<option value="">Todos</option>';
+    
+    if (marcaSeleccionada && modeloSeleccionado) {
+        // Filtrar motores que corresponden a esta marca + modelo
+        const motoresFiltrados = new Set();
+        
+        const tbody = tablaVehiculos.getElementsByTagName('tbody')[0];
+        if (tbody) {
+            const filas = tbody.getElementsByTagName('tr');
+            for (let fila of filas) {
+                const marca = fila.cells[1].textContent.trim();
+                const modelo = fila.cells[2].textContent.trim();
+                const motor = fila.cells[3].textContent.trim();
+                
+                if (marca === marcaSeleccionada && modelo === modeloSeleccionado && motor !== '-') {
+                    motoresFiltrados.add(motor);
+                }
+            }
+        }
+        
+        // Agregar solo los motores de esta marca + modelo
+        motoresFiltrados.forEach(motor => {
+            const option = document.createElement('option');
+            option.value = motor;
+            option.textContent = motor;
+            filtroMotorVehiculo.appendChild(option);
+        });
+        
+        filtroMotorVehiculo.disabled = false;
+    } else if (marcaSeleccionada) {
+        // Si hay marca pero no modelo, mostrar todos los motores de esa marca
+        const motoresFiltrados = new Set();
+        
+        const tbody = tablaVehiculos.getElementsByTagName('tbody')[0];
+        if (tbody) {
+            const filas = tbody.getElementsByTagName('tr');
+            for (let fila of filas) {
+                const marca = fila.cells[1].textContent.trim();
+                const motor = fila.cells[3].textContent.trim();
+                
+                if (marca === marcaSeleccionada && motor !== '-') {
+                    motoresFiltrados.add(motor);
+                }
+            }
+        }
+        
+        motoresFiltrados.forEach(motor => {
+            const option = document.createElement('option');
+            option.value = motor;
+            option.textContent = motor;
+            filtroMotorVehiculo.appendChild(option);
+        });
+        
+        filtroMotorVehiculo.disabled = false;
+    } else {
+        // Si no hay marca, mostrar todos los motores
+        motoresOriginales.forEach(opt => {
+            filtroMotorVehiculo.appendChild(opt.cloneNode(true));
+        });
+        filtroMotorVehiculo.disabled = false;
+    }
+    
+    aplicarFiltros();
+});
+
+// Cuando cambia el motor
+filtroMotorVehiculo.addEventListener('change', aplicarFiltros);
+
+function aplicarFiltros() {
+    if (!tablaVehiculos) return;
+    
+    const textoBusqueda = buscarVehiculo.value.toLowerCase();
+    const marca = filtroMarcaVehiculo.value.toLowerCase();
+    const modelo = filtroModeloVehiculo.value.toLowerCase();
+    const motor = filtroMotorVehiculo.value.toLowerCase();
+    
+    const tbody = tablaVehiculos.getElementsByTagName('tbody')[0];
+    if (!tbody) return;
+    
+    const filas = tbody.getElementsByTagName('tr');
+    let visibles = 0;
+    
+    for (let fila of filas) {
+        const textoFila = fila.textContent.toLowerCase();
+        const marcaFila = fila.cells[1].textContent.toLowerCase();
+        const modeloFila = fila.cells[2].textContent.toLowerCase();
+        const motorFila = fila.cells[3].textContent.toLowerCase();
+        
+        let mostrar = true;
+        
+        // Filtro de búsqueda general
+        if (textoBusqueda && !textoFila.includes(textoBusqueda)) {
+            mostrar = false;
+        }
+        
+        // Filtro por marca
+        if (marca && !marcaFila.includes(marca)) {
+            mostrar = false;
+        }
+        
+        // Filtro por modelo
+        if (modelo && !modeloFila.includes(modelo)) {
+            mostrar = false;
+        }
+        
+        // Filtro por motor
+        if (motor && !motorFila.includes(motor)) {
+            mostrar = false;
+        }
+        
+        fila.style.display = mostrar ? '' : 'none';
+        if (mostrar) visibles++;
+    }
+    
+    document.getElementById('contadorVehiculos').textContent = `Mostrando ${visibles} de ${filas.length} vehículos`;
+}
+
+function limpiarFiltrosVehiculo() {
+    buscarVehiculo.value = '';
+    filtroMarcaVehiculo.value = '';
+    
+    // Restaurar todos los modelos y motores
+    filtroModeloVehiculo.innerHTML = '<option value="">Todos</option>';
+    modelosOriginales.forEach(opt => {
+        filtroModeloVehiculo.appendChild(opt.cloneNode(true));
+    });
+    filtroModeloVehiculo.disabled = false;
+    
+    filtroMotorVehiculo.innerHTML = '<option value="">Todos</option>';
+    motoresOriginales.forEach(opt => {
+        filtroMotorVehiculo.appendChild(opt.cloneNode(true));
+    });
+    filtroMotorVehiculo.disabled = false;
+    
+    aplicarFiltros();
+}
+
+if (buscarVehiculo) buscarVehiculo.addEventListener('input', aplicarFiltros);
+</script>
+{% endblock %}

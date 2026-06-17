@@ -1,0 +1,88 @@
+/* Overlay del lightbox */
+.lightbox-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    animation: fadeIn 0.2s ease;
+}
+
+.lightbox-overlay.activo {
+    display: flex;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Contenedor de la imagen */
+.lightbox-contenido {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    cursor: default;
+    animation: zoomIn 0.2s ease;
+}
+
+@keyframes zoomIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* Imagen agrandada */
+.lightbox-imagen {
+    max-width: 90vw;
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    display: block;
+}
+
+/* Pie de foto */
+.lightbox-caption {
+    text-align: center;
+    color: white;
+    padding: 12px;
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+/* Botón cerrar */
+.lightbox-cerrar {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    color: white;
+    font-size: 32px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    line-height: 1;
+    opacity: 0.8;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.lightbox-cerrar:hover {
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+/* Hint de "click para cerrar" */
+.lightbox-hint {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    opacity: 0.5;
+    font-size: 13px;
+}

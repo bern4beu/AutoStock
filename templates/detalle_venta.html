@@ -1,0 +1,212 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Detalle Venta #{{ venta.id }}{% endblock %}
+
+{% block page_title %}Venta #{{ venta.id }}{% endblock %}
+
+{% block header_actions %}
+{% if not venta.anulada %}
+<button onclick="abrirModalAnular()" class="btn" style="background: var(--danger, #dc3545); color: white; border: none; display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 16px; border-radius: 6px; font-size: var(--text-sm); font-weight: 500;">
+    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+    </svg>
+    Anular Venta
+</button>
+{% endif %}
+<button onclick="window.print()" class="btn btn-primary">
+    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+    </svg>
+    Imprimir Remito
+</button>
+<a href="/ventas" class="btn btn-secondary">
+    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path>
+    </svg>
+    Volver a Ventas
+</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- Banner de anulación -->
+{% if venta.anulada %}
+<div style="background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; padding: var(--spacing-lg); margin-bottom: var(--spacing-lg); display: flex; gap: var(--spacing-md); align-items: flex-start;">
+    <svg width="24" height="24" fill="none" stroke="#dc2626" viewBox="0 0 24 24" style="flex-shrink:0; margin-top: 2px;">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+    </svg>
+    <div>
+        <div style="font-weight: 700; color: #dc2626; font-size: var(--text-base); margin-bottom: 4px;">Esta venta fue anulada</div>
+        <div style="font-size: var(--text-sm); color: #7f1d1d;">
+            <strong>Fecha de anulación:</strong> {{ venta.fecha_anulacion }}<br>
+            <strong>Anulada por:</strong> {{ venta.anulada_por or 'desconocido' }}<br>
+            <strong>Motivo:</strong> {{ venta.motivo_anulacion }}
+        </div>
+        <div style="font-size: var(--text-sm); color: #991b1b; margin-top: 8px;">
+            El stock de los productos fue restaurado y {{ 'el saldo de la cuenta corriente fue revertido' if venta.tipo_pago == 'cuenta_corriente' else 'no afecta cuentas corrientes' }}.
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Información de la Venta -->
+<div class="card mb-4">
+    <div class="card-header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 class="card-title">Información General</h2>
+            {% if venta.anulada %}
+                <span class="badge badge-danger" style="font-size: var(--text-base); padding: 8px 16px;">Anulada</span>
+            {% else %}
+                <span class="badge badge-success" style="font-size: var(--text-base); padding: 8px 16px;">Completada</span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--spacing-xl);">
+            <div>
+                <div style="font-size: var(--text-sm); color: var(--gray-600); margin-bottom: 4px;">Cliente</div>
+                <div style="font-size: var(--text-lg); font-weight: 600; color: var(--gray-900);">{{ venta.cliente }}</div>
+            </div>
+            <div>
+                <div style="font-size: var(--text-sm); color: var(--gray-600); margin-bottom: 4px;">Fecha</div>
+                <div style="font-size: var(--text-lg); font-weight: 600; color: var(--gray-900);">{{ venta.fecha }}</div>
+            </div>
+            <div>
+                <div style="font-size: var(--text-sm); color: var(--gray-600); margin-bottom: 4px;">Tipo de Pago</div>
+                <div style="font-size: var(--text-lg); font-weight: 600; color: var(--gray-900);">
+                    {% if venta.tipo_pago == 'cuenta_corriente' %}Cuenta Corriente{% else %}Contado{% endif %}
+                </div>
+            </div>
+            <div>
+                <div style="font-size: var(--text-sm); color: var(--gray-600); margin-bottom: 4px;">Total</div>
+                <div style="font-size: var(--text-2xl); font-weight: 700; {% if venta.anulada %}color: var(--gray-400); text-decoration: line-through;{% else %}color: var(--success);{% endif %}">
+                    ${{ venta.total }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detalle de Productos -->
+<div class="table-container">
+    <div class="table-header">
+        <h2 class="table-title">Productos Vendidos</h2>
+    </div>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th class="text-center">Cantidad</th>
+                    <th class="text-right">Precio Unitario</th>
+                    <th class="text-right">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in detalles %}
+                <tr {% if venta.anulada %}style="opacity: 0.5;"{% endif %}>
+                    <td style="font-weight: 500; color: var(--gray-900);">{{ d.producto }}</td>
+                    <td class="text-center">
+                        <span class="badge badge-info" style="font-size: var(--text-base); padding: 6px 12px;">
+                            {{ d.cantidad }}
+                        </span>
+                    </td>
+                    <td class="text-right" style="color: var(--gray-700);">${{ d.precio_unitario }}</td>
+                    <td class="text-right" style="font-weight: 700; font-size: var(--text-lg); color: var(--gray-900);">
+                        ${{ d.subtotal }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="border-top: 2px solid var(--gray-300);">
+                    <td colspan="3" style="text-align: right; font-weight: 600; font-size: var(--text-lg); padding: var(--spacing-lg);">
+                        TOTAL:
+                    </td>
+                    <td class="text-right" style="font-weight: 700; font-size: var(--text-2xl); {% if venta.anulada %}color: var(--gray-400); text-decoration: line-through;{% else %}color: var(--success);{% endif %} padding: var(--spacing-lg);">
+                        ${{ venta.total }}
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+<!-- ===== MODAL ANULAR VENTA ===== -->
+{% if not venta.anulada %}
+<div id="modalAnular" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:white; border-radius:12px; padding: var(--spacing-xl); max-width:480px; width:90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom: var(--spacing-lg);">
+            <div style="width:44px; height:44px; background:#fef2f2; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                <svg width="22" height="22" fill="none" stroke="#dc2626" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+            </div>
+            <div>
+                <h3 style="font-size: var(--text-lg); font-weight: 700; color: var(--gray-900); margin:0;">Anular Venta #{{ venta.id }}</h3>
+                <p style="font-size: var(--text-sm); color: var(--gray-500); margin:4px 0 0;">Esta acción no se puede deshacer</p>
+            </div>
+        </div>
+
+        <div style="background:#fef2f2; border-radius:8px; padding: var(--spacing-md); margin-bottom: var(--spacing-lg); font-size: var(--text-sm); color: #7f1d1d; line-height: 1.6;">
+            Al anular esta venta:<br>
+            • El stock de cada producto será <strong>restaurado automáticamente</strong><br>
+            {% if venta.tipo_pago == 'cuenta_corriente' %}
+            • El saldo de la cuenta corriente del cliente será <strong>reducido en ${{ venta.total }}</strong><br>
+            {% endif %}
+            • La anulación quedará <strong>registrada en el historial</strong>
+        </div>
+
+        <form method="POST" action="/venta/{{ venta.id }}/anular">
+            <div class="form-group">
+                <label for="motivo" style="font-weight: 600;">Motivo de anulación <span style="color: var(--danger);">*</span></label>
+                <textarea 
+                    id="motivo" 
+                    name="motivo" 
+                    rows="3" 
+                    placeholder="Ej: Precio cargado incorrectamente, venta duplicada, error de cliente..."
+                    style="width:100%; resize:vertical; font-family: inherit;"
+                    required
+                ></textarea>
+            </div>
+
+            <div style="display:flex; gap: var(--spacing-md); justify-content:flex-end; margin-top: var(--spacing-lg);">
+                <button type="button" onclick="cerrarModalAnular()" class="btn btn-secondary">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn" style="background: #dc2626; color: white; border: none; cursor: pointer; padding: 8px 20px; border-radius: 6px; font-size: var(--text-sm); font-weight: 600;">
+                    Confirmar Anulación
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+{% if not venta.anulada %}
+<script>
+function abrirModalAnular() {
+    const modal = document.getElementById('modalAnular');
+    modal.style.display = 'flex';
+    // Enfocar el textarea
+    setTimeout(() => document.getElementById('motivo').focus(), 100);
+}
+function cerrarModalAnular() {
+    document.getElementById('modalAnular').style.display = 'none';
+    document.getElementById('motivo').value = '';
+}
+// Cerrar con Escape
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') cerrarModalAnular();
+});
+// Cerrar al hacer click fuera del modal
+document.getElementById('modalAnular').addEventListener('click', function(e) {
+    if (e.target === this) cerrarModalAnular();
+});
+</script>
+{% endif %}
+{% endblock %}

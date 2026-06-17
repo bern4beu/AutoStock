@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema de Gestión{% endblock %} - AutoStock</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS Principal -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/corporate.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/lightbox.css') }}">
+    
+    <!-- CSS Adicional por página -->
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    
+    <!-- Overlay mobile -->
+    <div id="sidebarOverlay" onclick="cerrarSidebar()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:997;"></div>
+
+    <div class="app-container">
+        
+        <!-- ========== SIDEBAR ========== -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="/" class="sidebar-logo">AutoStock</a>
+                <div class="sidebar-subtitle">Sistema de Gestión</div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                
+                <!-- Sección Principal -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Principal</div>
+                    <a href="/" class="nav-link {% if request.endpoint == 'home' %}active{% endif %}">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                        Dashboard
+                    </a>
+                </div>
+                
+                <!-- Sección Operaciones -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Operaciones</div>
+                    <a href="/venta" class="nav-link {% if request.endpoint == 'agregar_venta' %}active{% endif %}">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        Nueva Venta
+                    </a>
+                    <a href="/ventas" class="nav-link {% if request.endpoint == 'listar_ventas_app' %}active{% endif %}">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        Ventas
+                    </a>
+                    <a href="/productos" class="nav-link {% if request.endpoint == 'listar_productos' %}active{% endif %}">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
+                        Productos
+                    </a>
+                </div>
+                
+                <!-- Sección Gestión -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Gestión</div>
+                    <a href="/clientes" class="nav-link {% if request.endpoint == 'agregar_cliente' %}active{% endif %}">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        Clientes
+                    </a>
+                    <a href="/cuentas_corriente" class="nav-link {% if request.endpoint == 'cuentas_corriente' %}active{% endif %}">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        Cuentas Corrientes
+                    </a>
+                    <a href="/proveedor" class="nav-link {% if request.endpoint == 'agregar_proveedor' %}active{% endif %}">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                        </svg>
+                        Proveedores
+                    </a>
+                    <a href="/agregar_vehiculo" class="nav-link {% if request.endpoint == 'agregar_vehiculo' %}active{% endif %}">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                        </svg>
+                        Vehículos
+                    </a>
+                </div>
+                
+                <!-- Sección Reportes -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Reportes</div>
+                    {% if current_user.es_admin() %}
+                    <a href="/reportes" class="nav-link {% if request.endpoint == 'reportes' %}active{% endif %}">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        Reportes
+                    </a>
+                    {% endif %}
+                    <a href="/movimientos_stock" class="nav-link {% if request.endpoint == 'movimientos_stock' %}active{% endif %}">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                        </svg>
+                        Movimientos
+                    </a>
+                    <a href="/stock-bajo" class="nav-link {% if request.endpoint == 'stock_bajo' %}active{% endif %}">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                        Stock Bajo
+                    </a>
+                    <a href="/productos-mas-vendidos" class="nav-link {% if request.endpoint == 'productos_mas_vendidos' %}active{% endif %}">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                        Más Ganancia
+                    </a>
+                    {% if 'modulo_caja' in features %}
+                    <a href="/taller" class="nav-link {% if request.endpoint == 'taller' %}active{% endif %}">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        Taller
+                    </a>
+                    {% endif %}
+                </div>
+                
+                <!-- Sección Configuración -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Configuración</div>
+                    <a href="/producto_base" class="nav-link {% if request.endpoint == 'agregar_producto_base' %}active{% endif %}">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Producto Base
+                    </a>
+                    <a href="/producto_variante" class="nav-link {% if request.endpoint == 'agregar_producto_variante' %}active{% endif %}">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Nueva Variante
+                    </a>
+                    <a href="/producto_vehiculo" class="nav-link {% if request.endpoint == 'asociar_producto_vehiculo' %}active{% endif %}">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                        </svg>
+                        Asociar Producto
+                    </a>
+                    {% if current_user.es_admin() %}
+                    <a href="/usuarios" class="nav-link {% if request.endpoint == 'listar_usuarios' %}active{% endif %}">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        Usuarios
+                    </a>
+                    {% endif %}
+                </div>
+                
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">{{ current_user.nombre[0].upper() if current_user.is_authenticated else "" }}</div>
+                    <div class="user-details">
+                        <div class="user-name">{{ current_user.nombre }}</div>
+                        <div class="user-role">{{ current_user.rol|title }}</div>
+                    </div>
+                </div>
+                <a href="/logout" class="btn btn-secondary btn-sm" style="margin-top: 12px; width: 100%;">
+                    Cerrar Sesión
+                </a>
+            </div>
+        </aside>
+        
+        <!-- ========== CONTENIDO PRINCIPAL ========== -->
+        <main class="main-content">
+            
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-left" style="display:flex; align-items:center; gap:var(--spacing-md);">
+                    <button id="btnHamburguesa" onclick="toggleSidebar()" class="btn btn-secondary btn-sm" style="display:none;">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                    <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
+                </div>
+                
+                <div class="header-actions">
+                    <a href="/cambiar_password" class="btn btn-secondary btn-sm">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                        </svg>
+                        Cambiar Contraseña
+                    </a>
+                    
+                    {% block header_actions %}{% endblock %}
+                </div>
+            </header>
+            
+            <!-- Contenido de la página -->
+            <div class="page-content">
+                
+                <!-- Mensajes Flash (de redirects) -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {% if category == 'success' %}
+                            <strong>✓</strong>
+                            {% elif category == 'error' %}
+                            <strong>✗</strong>
+                            {% elif category == 'warning' %}
+                            <strong>⚠️</strong>
+                            {% else %}
+                            <strong>ℹ️</strong>
+                            {% endif %}
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <!-- Mensajes Contextuales (de render_template) -->
+                {% if mensaje_exito %}
+                <div class="alert alert-success">
+                    <strong>✓ Éxito:</strong> {{ mensaje_exito }}
+                </div>
+                {% endif %}
+                
+                {% if mensaje_error %}
+                <div class="alert alert-error">
+                    <strong>✗ Error:</strong> {{ mensaje_error }}
+                </div>
+                {% endif %}
+                
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+        
+    </div>
+    
+    <!-- JavaScript adicional -->
+    {% block extra_js %}{% endblock %}
+
+    <script>
+    function toggleSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const abierta = sidebar.classList.toggle('sidebar-open');
+        overlay.style.display = abierta ? 'block' : 'none';
+    }
+    function cerrarSidebar() {
+        document.querySelector('.sidebar').classList.remove('sidebar-open');
+        document.getElementById('sidebarOverlay').style.display = 'none';
+    }
+    // Mostrar botón hamburguesa solo en mobile
+    function checkMobile() {
+        const btn = document.getElementById('btnHamburguesa');
+        btn.style.display = window.innerWidth <= 768 ? 'flex' : 'none';
+    }
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    // Cerrar sidebar al navegar en mobile
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 768) cerrarSidebar();
+        });
+    });
+    </script>
+    
+</body>
+</html>

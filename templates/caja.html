@@ -1,0 +1,217 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Taller - Caja{% endblock %}
+
+{% block page_title %}Taller{% endblock %}
+
+{% block header_actions %}
+<button onclick="mostrarModalCobro()" class="btn btn-primary">
+    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+    </svg>
+    Registrar Cobro
+</button>
+{% endblock %}
+
+{% block content %}
+
+<!-- Filtro de mes -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h2 class="card-title">Filtrar por mes</h2>
+    </div>
+    <div class="card-body">
+        <form method="GET" action="/taller">
+            <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: var(--spacing-md); align-items: flex-end;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Desde</label>
+                    <input type="date" name="desde" value="{{ desde or '' }}">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Hasta</label>
+                    <input type="date" name="hasta" value="{{ hasta or '' }}">
+                </div>
+                <div style="display: flex; gap: var(--spacing-sm);">
+                    <button type="submit" class="btn btn-primary">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                        </svg>
+                        Filtrar
+                    </button>
+                    <a href="/taller" class="btn btn-secondary">Limpiar</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Resumen del mes -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h2 class="card-title">Resumen{% if desde or hasta %} del período{% else %} del mes{% endif %}</h2>
+        <div style="font-size: 1.5rem; font-weight: 700; color: var(--gray-900);">
+            ${{ "{:,.0f}".format(resumen.taller.total) }}
+        </div>
+    </div>
+    <div class="card-body">
+        {% if resumen.taller.por_metodo %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--spacing-md);">
+            {% for metodo, monto in resumen.taller.por_metodo.items() %}
+            <div style="background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 8px; padding: var(--spacing-md);">
+                <div style="font-size: var(--text-xs); color: var(--gray-500); text-transform: capitalize; margin-bottom: 4px;">
+                    {{ metodo.replace('_', ' ') }}
+                </div>
+                <div style="font-size: var(--text-lg); font-weight: 700; color: var(--gray-900);">
+                    ${{ "{:,.0f}".format(monto) }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="color: var(--gray-400); font-size: var(--text-sm);">Sin cobros registrados este mes.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Tabla de registros -->
+<div class="table-container">
+    <div class="table-header">
+        <div>
+            <h2 class="table-title">Cobros
+                <span style="font-size: var(--text-sm); font-weight: 400; color: var(--gray-500);">
+                    {% if filtro_desde or filtro_hasta %}período seleccionado{% else %}mes actual{% endif %}
+                </span>
+            </h2>
+            <p style="font-size: var(--text-sm); color: var(--gray-500); margin-top: 4px;">
+                {{ registros|length }} cobro{{ 's' if registros|length != 1 else '' }} registrado{{ 's' if registros|length != 1 else '' }}
+            </p>
+        </div>
+    </div>
+
+    {% if registros %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Cliente / Patente</th>
+                    <th>Descripción</th>
+                    <th>Método de Pago</th>
+                    <th class="text-right">Monto</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in registros %}
+                <tr>
+                    <td style="font-size: var(--text-sm); color: var(--gray-600);">
+                        {{ r.fecha.strftime('%d/%m/%Y') }}
+                    </td>
+                    <td style="font-weight: 500; color: var(--gray-900);">{{ r.cliente or '-' }}</td>
+                    <td style="font-size: var(--text-sm); color: var(--gray-500);">{{ r.descripcion or '-' }}</td>
+                    <td>
+                        <span class="badge badge-gray" style="text-transform: capitalize;">
+                            {{ r.metodo_pago.replace('_', ' ') }}
+                        </span>
+                    </td>
+                    <td class="text-right" style="font-weight: 600; color: var(--gray-900);">
+                        ${{ "{:,.0f}".format(r.monto) }}
+                    </td>
+                    <td class="text-center">
+                        <button onclick="anularRegistro({{ r.id }})"
+                                class="btn btn-secondary btn-sm"
+                                style="color: var(--danger);"
+                                title="Anular cobro">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636">
+                                </path>
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="padding: var(--spacing-2xl); text-align: center;">
+        <p style="color: var(--gray-500);">No hay cobros registrados este mes.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal registrar cobro -->
+<div id="modalCobro" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 12px; padding: var(--spacing-xl); max-width: 500px; width: 90%;">
+        <h3 style="margin-bottom: var(--spacing-lg); color: var(--gray-900);">Registrar Cobro</h3>
+        <form method="POST" action="/taller/registrar">
+            <input type="hidden" name="origen" value="taller">
+
+            <div class="form-group">
+                <label>Cliente / Patente</label>
+                <input type="text" name="cliente" placeholder="Ej: ABC 123 o Juan López">
+            </div>
+
+            <div class="form-group">
+                <label>Descripción del trabajo</label>
+                <input type="text" name="descripcion" placeholder="Ej: Service, cambio de frenos...">
+            </div>
+
+            <div class="form-group">
+                <label>Monto *</label>
+                <input type="number" name="monto" step="0.01" min="0.01" required placeholder="0.00">
+            </div>
+
+            <div class="form-group">
+                <label>Método de Pago *</label>
+                <select name="metodo_pago" required>
+                    <option value="efectivo">Efectivo</option>
+                    <option value="transferencia">Transferencia</option>
+                    <option value="tarjeta_credito">Tarjeta de Crédito</option>
+                    <option value="tarjeta_debito">Tarjeta de Débito</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Fecha *</label>
+                <input type="date" name="fecha" required value="{{ hoy }}">
+            </div>
+
+            <div style="display: flex; gap: var(--spacing-md); justify-content: flex-end; margin-top: var(--spacing-lg);">
+                <button type="button" onclick="cerrarModalCobro()" class="btn btn-secondary">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function mostrarModalCobro() {
+    document.getElementById('modalCobro').style.display = 'flex';
+}
+function cerrarModalCobro() {
+    document.getElementById('modalCobro').style.display = 'none';
+}
+function cambiarMes() {
+    const mes = document.getElementById('filtroMes').value;
+    if (mes) window.location.href = '/taller?mes=' + mes;
+}
+function anularRegistro(id) {
+    if (confirm('¿Anular este cobro? El registro quedará guardado pero no contará en los resúmenes.')) {
+        fetch('/taller/anular/' + id, { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) window.location.reload();
+                else alert('Error al anular.');
+            });
+    }
+}
+document.getElementById('modalCobro').addEventListener('click', function(e) {
+    if (e.target === this) cerrarModalCobro();
+});
+</script>
+{% endblock %}

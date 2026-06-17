@@ -1,0 +1,152 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Rentabilidad de Productos{% endblock %}
+
+{% block page_title %}Rentabilidad de Productos{% endblock %}
+
+{% block content %}
+
+{% if sin_costo > 0 %}
+<div style="background: rgba(245, 158, 11, 0.08); border: 1px solid var(--warning); border-radius: 8px; padding: var(--spacing-md); margin-bottom: var(--spacing-lg); display: flex; align-items: center; gap: var(--spacing-md);">
+    <svg width="20" height="20" fill="none" stroke="var(--warning)" viewBox="0 0 24 24" style="flex-shrink: 0;">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+    </svg>
+    <span style="font-size: var(--text-sm); color: var(--gray-700);">
+        <strong>{{ sin_costo }} producto{{ 's' if sin_costo != 1 else '' }}</strong> 
+        sin precio de compra no {{ 'aparecen' if sin_costo != 1 else 'aparece' }} en este ranking.
+        <a href="/productos" style="color: var(--warning); font-weight: 600;">Cargar precios →</a>
+    </span>
+</div>
+{% endif %}
+
+<!-- Top 5 más rentables -->
+<div class="table-container mb-4">
+    <div class="table-header">
+        <div>
+            <h2 class="table-title">Top 5 más rentables</h2>
+            <p style="font-size: var(--text-sm); color: var(--gray-500); margin-top: 4px;">
+                Productos que más ganancia generan en total
+            </p>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 60px;">#</th>
+                    <th>Producto</th>
+                    <th class="text-center">Unidades vendidas</th>
+                    <th class="text-right">Total facturado</th>
+                    <th class="text-right">Ganancia total</th>
+                    <th class="text-right">Margen</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in top_rentables %}
+                <tr>
+                    <td class="text-center">
+                        <div style="width: 32px; height: 32px; border-radius: 50%;
+                            background: {% if loop.index <= 3 %}linear-gradient(135deg, var(--primary), var(--primary-light)){% else %}var(--gray-100){% endif %};
+                            color: {% if loop.index <= 3 %}white{% else %}var(--gray-600){% endif %};
+                            display: flex; align-items: center; justify-content: center;
+                            font-weight: 700; font-size: var(--text-sm);">
+                            {{ loop.index }}
+                        </div>
+                    </td>
+                    <td style="font-weight: 500; color: var(--gray-900);">{{ p.producto }}</td>
+                    <td class="text-center">
+                        <span class="badge badge-info" style="font-size: var(--text-sm); padding: 4px 10px;">
+                            {{ p.cantidad_vendida }}
+                        </span>
+                    </td>
+                    <td class="text-right" style="color: var(--gray-600);">${{ p.total_facturado }}</td>
+                    <td class="text-right" style="font-weight: 700; font-size: var(--text-lg); color: var(--success);">
+                        ${{ p.ganancia_total }}
+                    </td>
+                    <td class="text-right">
+                        <span style="background: rgba(16, 185, 129, 0.1); color: var(--success);
+                            padding: 3px 8px; border-radius: 12px; font-size: var(--text-sm); font-weight: 600;">
+                            {{ p.margen_pct }}%
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if not top_rentables %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: var(--gray-500); padding: var(--spacing-xl);">
+                        No hay ventas con precio de compra cargado todavía.
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Top 5 menos rentables -->
+<div class="table-container">
+    <div class="table-header">
+        <div>
+            <h2 class="table-title">Top 5 menos rentables</h2>
+            <p style="font-size: var(--text-sm); color: var(--gray-500); margin-top: 4px;">
+                Productos que menos ganancia generan — revisá precio o costo
+            </p>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 60px;">#</th>
+                    <th>Producto</th>
+                    <th class="text-center">Unidades vendidas</th>
+                    <th class="text-right">Total facturado</th>
+                    <th class="text-right">Ganancia total</th>
+                    <th class="text-right">Margen</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in menos_rentables %}
+                <tr>
+                    <td class="text-center">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--gray-100);
+                            color: var(--gray-600); display: flex; align-items: center; justify-content: center;
+                            font-weight: 700; font-size: var(--text-sm);">
+                            {{ loop.index }}
+                        </div>
+                    </td>
+                    <td style="font-weight: 500; color: var(--gray-900);">{{ p.producto }}</td>
+                    <td class="text-center">
+                        <span class="badge badge-gray" style="font-size: var(--text-sm); padding: 4px 10px;">
+                            {{ p.cantidad_vendida }}
+                        </span>
+                    </td>
+                    <td class="text-right" style="color: var(--gray-600);">${{ p.total_facturado }}</td>
+                    <td class="text-right" style="font-weight: 700; font-size: var(--text-lg);
+                        color: {% if p.ganancia_total|float < 0 %}var(--danger){% else %}var(--gray-700){% endif %};">
+                        ${{ p.ganancia_total }}
+                    </td>
+                    <td class="text-right">
+                        <span style="background: {% if p.margen_pct|float < 0 %}rgba(239, 68, 68, 0.1){% else %}rgba(107, 114, 128, 0.1){% endif %};
+                            color: {% if p.margen_pct|float < 0 %}var(--danger){% else %}var(--gray-600){% endif %};
+                            padding: 3px 8px; border-radius: 12px; font-size: var(--text-sm); font-weight: 600;">
+                            {{ p.margen_pct }}%
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if not menos_rentables %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: var(--gray-500); padding: var(--spacing-xl);">
+                        No hay ventas con precio de compra cargado todavía.
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

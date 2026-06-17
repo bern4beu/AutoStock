@@ -1,0 +1,172 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Nueva Variante{% endblock %}
+
+{% block page_title %}Registrar Variante de Producto{% endblock %}
+
+{% block content %}
+
+{% if not productos %}
+<div class="alert alert-warning">
+    <strong>No hay productos base registrados.</strong> 
+    <a href="/producto_base" style="color: var(--primary); text-decoration: underline;">Creá un producto base primero</a>.
+</div>
+{% else %}
+
+<div class="card" style="max-width: 900px;">
+    <div class="card-header">
+        <h2 class="card-title">Nueva Variante de Producto</h2>
+        <p style="font-size: var(--text-sm); color: var(--gray-600); margin-top: 4px;">
+            Una variante es una versión específica de un producto base (ejemplo: diferentes marcas del mismo repuesto).
+        </p>
+    </div>
+    <div class="card-body">
+        
+        <form method="POST">
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg); margin-bottom: var(--spacing-lg);">
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="id_producto_base">Producto Base *</label>
+                    <select name="id_producto_base" id="id_producto_base" required>
+                        <option value="">Seleccionar producto base...</option>
+                        {% for p in productos %}
+                        <option value="{{ p[0] }}">{{ p[1] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="marca">Marca *</label>
+                    <input 
+                        type="text" 
+                        id="marca" 
+                        name="marca" 
+                        placeholder="Ej: Original, Alternativa, etc."
+                        required
+                    >
+                </div>
+                
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--spacing-lg); margin-bottom: var(--spacing-lg);">
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="codigo">Código (opcional)</label>
+                    <input 
+                        type="text" 
+                        id="codigo" 
+                        name="codigo" 
+                        placeholder="Ej: ABC-123"
+                    >
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="calidad">Calidad (opcional)</label>
+                    <input 
+                        type="text" 
+                        id="calidad" 
+                        name="calidad" 
+                        placeholder="Ej: Original, Alternativa..."
+                    >
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="precio">Precio de Venta *</label>
+                    <input 
+                        type="number" 
+                        id="precio" 
+                        name="precio" 
+                        step="0.01" 
+                        min="0"
+                        placeholder="0.00"
+                        required
+                    >
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="precio_compra">Precio de Compra</label>
+                    <input 
+                        type="number" 
+                        id="precio_compra" 
+                        name="precio_compra" 
+                        step="0.01" 
+                        min="0"
+                        placeholder="0.00"
+                    >
+                </div>
+                
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--spacing-lg); margin-bottom: var(--spacing-lg);">
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="stock">Stock Inicial *</label>
+                    <input 
+                        type="number" 
+                        id="stock" 
+                        name="stock" 
+                        min="0"
+                        value="0"
+                        required
+                    >
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="stock_minimo">Stock Mínimo</label>
+                    <input 
+                        type="number" 
+                        id="stock_minimo" 
+                        name="stock_minimo" 
+                        min="0"
+                        value="5"
+                        placeholder="5"
+                    >
+                    <small style="color: var(--gray-500);">Alerta cuando el stock baje de este nivel</small>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="ubicacion">Ubicación (opcional)</label>
+                    <input 
+                        type="text" 
+                        id="ubicacion" 
+                        name="ubicacion" 
+                        placeholder="Ej: Estante A1, Depósito 2..."
+                    >
+                </div>
+                
+            </div>
+            
+            <div class="form-group">
+                <label>Proveedores</label>
+                <div style="max-height: 200px; overflow-y: auto; border: 1px solid var(--gray-300); border-radius: 6px; padding: var(--spacing-md); background: var(--gray-50);">
+                    {% for prov in proveedores %}
+                    <label style="display: flex; align-items: center; gap: 8px; padding: 6px 0; cursor: pointer;">
+                        <input type="checkbox" name="proveedores" value="{{ prov[0] }}">
+                        <span>{{ prov[1] }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+                <small style="color: var(--gray-500);">Seleccioná todos los que apliquen</small>
+            </div>
+            
+            <div style="display: flex; gap: var(--spacing-md);">
+                <button type="submit" class="btn btn-primary">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Crear Variante
+                </button>
+                <a href="/productos" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/editar_variante.js') }}"></script>
+{% endblock %}

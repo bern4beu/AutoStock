@@ -1,0 +1,142 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Stock Bajo{% endblock %}
+
+{% block page_title %}Productos con Stock Crítico{% endblock %}
+
+{% block content %}
+
+<!-- Filtros -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-md);">
+            <div>
+                <label>Buscar Producto</label>
+                <input type="text" id="buscarProducto" placeholder="Nombre, marca, ubicación...">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="table-container">
+    <div class="table-header">
+        <div>
+            <h2 class="table-title">Stock Bajo</h2>
+            <p style="font-size: var(--text-sm); color: var(--gray-500); margin-top: 4px;">
+                Productos que alcanzaron o están por debajo del stock mínimo
+            </p>
+        </div>
+        {% if 'pdf_stock_bajo' in features %}
+            <a href="/stock-bajo/pdf" class="btn btn-primary" target="_blank">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: 6px; vertical-align: middle;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Generar PDF para Proveedor
+            </a>
+            {% endif %}
+        <a href="/productos" class="btn btn-secondary">
+            Ver Todos los Productos
+        </a>
+    </div>
+    
+    {% if productos %}
+    <div class="table-wrapper">
+        <table id="tablaStockBajo">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Marca</th>
+                    <th>Calidad</th>
+                    <th class="text-center">Stock Actual</th>
+                    <th class="text-center">Stock Mínimo</th>
+                    <th>Ubicación</th>
+                    <th class="text-center">Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in productos %}
+                <tr>
+                    <td style="font-weight: 500; color: var(--gray-900);">{{ p.producto }}</td>
+                    <td>{{ p.marca }}</td>
+                    <td>
+                        {% if p.calidad %}
+                        <span class="badge badge-gray">{{ p.calidad }}</span>
+                        {% else %}
+                        <span style="color: var(--gray-400);">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <span class="badge badge-danger" style="font-size: var(--text-base); padding: 6px 12px;">
+                            {{ p.stock }}
+                        </span>
+                    </td>
+                    <td class="text-center" style="color: var(--gray-600);">{{ p.stock_minimo }}</td>
+                    <td>{{ p.ubicacion or '-' }}</td>
+                    <td class="text-center">
+                        <span class="badge badge-warning">Crítico</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="padding: var(--spacing-2xl); text-align: center;">
+        <svg width="64" height="64" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin: 0 auto var(--spacing-md); color: var(--success);">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <h3 style="color: var(--gray-900); margin-bottom: var(--spacing-sm);">¡Todo en orden!</h3>
+        <p style="color: var(--gray-600);">No hay productos con stock crítico en este momento.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const buscarProducto = document.getElementById('buscarProducto');
+const filtroMarca = document.getElementById('filtroMarca');
+const filtroUbicacion = document.getElementById('filtroUbicacion');
+const tabla = document.getElementById('tablaStockBajo');
+
+function aplicarFiltros() {
+    if (!tabla) return;
+    
+    const textoBusqueda = buscarProducto.value.toLowerCase();
+    const marca = filtroMarca.value.toLowerCase();
+    const ubicacion = filtroUbicacion.value.toLowerCase();
+    
+    const tbody = tabla.getElementsByTagName('tbody')[0];
+    if (!tbody) return;
+    
+    const filas = tbody.getElementsByTagName('tr');
+    
+    for (let fila of filas) {
+        const textoFila = fila.textContent.toLowerCase();
+        const marcaFila = fila.cells[1].textContent.toLowerCase();
+        const ubicacionFila = fila.cells[4].textContent.toLowerCase();
+        
+        let mostrar = true;
+        
+        if (textoBusqueda && !textoFila.includes(textoBusqueda)) {
+            mostrar = false;
+        }
+        
+        if (marca && !marcaFila.includes(marca)) {
+            mostrar = false;
+        }
+        
+        if (ubicacion && !ubicacionFila.includes(ubicacion)) {
+            mostrar = false;
+        }
+        
+        fila.style.display = mostrar ? '' : 'none';
+    }
+}
+
+if (buscarProducto) buscarProducto.addEventListener('input', aplicarFiltros);
+if (filtroMarca) filtroMarca.addEventListener('input', aplicarFiltros);
+if (filtroUbicacion) filtroUbicacion.addEventListener('input', aplicarFiltros);
+</script>
+{% endblock %}
